@@ -277,13 +277,21 @@
     // Default fallback password while fetching from database
     let REQUIRED_PASSWORD = "178239"; 
     const REQUIRED_USERNAME = "admin";
+    let CSV_IMPORT_PASSWORD = "999999"; // Separate Password for CSV Uploads (Change as needed)
 
-    // Live listener: Updates password instantly across all connected devices when changed in Firebase
-    db.ref('appSettings/systemPassword').on('value', (snapshot) => {
-        if (snapshot.exists()) {
-            REQUIRED_PASSWORD = snapshot.val().toString();
-        }
-    });
+    // Live listener for system password[cite: 1]
+db.ref('appSettings/systemPassword').on('value', (snapshot) => {[cite: 1]
+    if (snapshot.exists()) {
+        REQUIRED_PASSWORD = snapshot.val().toString();[cite: 1]
+    }
+});
+
+// Live listener for CSV import password
+db.ref('appSettings/csvPassword').on('value', (snapshot) => {
+    if (snapshot.exists()) {
+        CSV_IMPORT_PASSWORD = snapshot.val().toString();
+    }
+});	
 
     let globalLogs = [];
     let matchedRecords = [];
@@ -468,15 +476,15 @@
     }
 
     function requestFormUnlock() {
-        if (!isFormLocked) return;
-        const pwd = prompt("SECURITY VERIFICATION:\nEnter authorization password to edit this record:");
-        if (pwd === REQUIRED_PASSWORD) {
-            setFormLockState(false);
-            alert("Record unlocked! You can now make changes and print/save.");
-        } else if (pwd !== null) {
-            alert("Incorrect password! Editing locked.");
-        }
+    if (!isFormLocked) return;[cite: 1]
+    const pwd = prompt("SECURITY VERIFICATION:\nEnter authorization password to edit this record:");[cite: 1]
+    if (pwd === CSV_IMPORT_PASSWORD) { // Updated to use CSV / Edit Password
+        setFormLockState(false);[cite: 1]
+        alert("Record unlocked! You can now make changes and print/save.");[cite: 1]
+    } else if (pwd !== null) {[cite: 1]
+        alert("Incorrect password! Editing locked.");[cite: 1]
     }
+}
 
     async function autoTranslateToHindi(text) {
         if (!text.trim()) return "";
@@ -713,14 +721,14 @@
     }
 
     function triggerCSVImport() {
-        const password = prompt("ADMIN SECURITY VERIFICATION:\nPlease enter password to authorize CSV import:");
-        
-        if (password === REQUIRED_PASSWORD) {
-            document.getElementById('csvFileInput').click();
-        } else if (password !== null) {
-            alert("Authentication failed: Incorrect password. CSV import unauthorized.");
-        }
+    const password = prompt("ADMIN SECURITY VERIFICATION:\nPlease enter password to authorize CSV import:");[cite: 1]
+    
+    if (password === CSV_IMPORT_PASSWORD) {
+        document.getElementById('csvFileInput').click();[cite: 1]
+    } else if (password !== null) {
+        alert("Authentication failed: Incorrect password. CSV import unauthorized.");[cite: 1]
     }
+}
 
     function parseCSV(text) {
         const lines = [];
