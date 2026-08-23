@@ -94,7 +94,7 @@
                 font-weight: 600; 
                 letter-spacing: 0.5px; 
                 text-transform: uppercase; 
-                margin-bottom: 8px;
+                margin-bottom: 2px;
                 text-decoration: underline; 
             }
             
@@ -212,6 +212,7 @@
             </div>
 
             <div class="button-group">
+                <button class="secondary-btn" style="background:#1a73e8;" onclick="saveOnly()">💾 Save Record</button>
                 <button onclick="saveAndPrint('form')">Print Maintenance-English</button>
                 <button class="secondary-btn" style="background:#fbbc04; color:#000;" onclick="saveAndPrint('consent')">Print Maintenance-Hindi</button>
                 <button class="secondary-btn" onclick="saveAndPrint('slip')">Print CIS</button>
@@ -229,7 +230,7 @@
                     <option value="contact">Contact No.</option>
                     <option value="imei">IMEI / Serial No.</option>
                     <option value="name">Customer Name</option>
-                    <option value="model">Device Model</option>
+                    <option value="jobsheet">Jobsheet No.</option>
                 </select>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="searchQuery" placeholder="Enter search term..." style="width: 100%;" onkeyup="if(event.key === 'Enter') performSearch()">
@@ -489,13 +490,14 @@
         }
     }
 
-    async function saveAndPrint(docType) {
+    // STEP 2: Dedicated Save Helper Functions
+    async function saveData() {
         const name = document.getElementById('custName').value.trim();
         const imei = document.getElementById('imei').value.trim();
 
         if (!name || !imei) {
             alert("Please enter Customer Name and IMEI / Serial Number.");
-            return;
+            return false;
         }
 
         const model = document.getElementById('model').value;
@@ -509,8 +511,6 @@
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
         const advance = document.getElementById('advancePaid').value;
 
-        const imeiJobsheetDisplay = jobsheet ? `${imei} / ${jobsheet}` : imei;
-
         const existingRecord = globalLogs.find(log => log.imei === imei);
         const recordTimestamp = isExistingRecord && existingRecord ? (existingRecord.timestamp || Date.now()) : Date.now();
 
@@ -523,7 +523,36 @@
 
         const safeImeiKey = imei.replace(/[.#$[\]]/g, "_");
         await db.ref('customerLogs/' + safeImeiKey).set(recordData);
+        return true;
+    }
 
+    async function saveOnly() {
+        const saved = await saveData();
+        if (saved) {
+            alert("Record saved successfully!");
+            clearForm();
+        }
+    }
+
+    // STEP 3: Updated saveAndPrint function using saveData()
+    async function saveAndPrint(docType) {
+        const saved = await saveData();
+        if (!saved) return;
+
+        const name = document.getElementById('custName').value.trim();
+        const imei = document.getElementById('imei').value.trim();
+        const model = document.getElementById('model').value;
+        const contact = document.getElementById('contact').value;
+        const address = document.getElementById('address').value;
+        const email = document.getElementById('email').value;
+        const symptom = document.getElementById('symptom').value;
+        const condition = document.getElementById('condition').value;
+        const entryDate = document.getElementById('entryDate').value;
+        const entryTime = document.getElementById('entryTime').value;
+        const jobsheet = document.getElementById('jobsheetNo').value.trim();
+        const advance = document.getElementById('advancePaid').value;
+
+        const imeiJobsheetDisplay = jobsheet ? `${imei} / ${jobsheet}` : imei;
         const printArea = document.getElementById('printableArea');
 
         if (docType === 'form') {
@@ -585,7 +614,11 @@
             printArea.innerHTML = `
                 <div class="cis-wrapper">
                     <div>
-                        <div class="company-brand-header" style="margin-bottom: 2px;">Elite Communication</div>
+                        <div class="company-brand-header">Elite Communication</div>
+                        <div style="text-align:center; font-size:11px; font-weight:600; text-transform:uppercase; margin-bottom:8px; line-height:1.3;">
+   			 Authorised Samsung Service Center, H.K. Das Shopping Plaza,<br>
+  			 B-20/44,A-7, Bhelupur, Varanasi - 221010
+		    </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #000; padding-bottom:6px; margin-bottom:12px;">
                             <svg style="height:24px; width:auto;" viewBox="0 0 200 30" fill="#000000" xmlns="http://www.w3.org/2000/svg">
                                 <text x="0" y="24" font-family="'Trebuchet MS', Arial, sans-serif" font-weight="600" font-size="20" letter-spacing="-1">SAMSUNG</text>
