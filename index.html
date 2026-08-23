@@ -157,11 +157,6 @@
         <h2>Device Entry Form</h2>
         <button class="logout-btn" onclick="handleLogout()">🔒 Logout</button>
     </div>
-
-    <!--<div id="editBanner" class="edit-status-banner">
-        <span>🔒 Loaded existing record in Read-Only mode. Click any field or "Unlock Editing" to edit.</span>
-        <button class="unlock-btn" onclick="requestFormUnlock()">Unlock Editing</button>
-    </div>-->
     
     <div class="main-layout">
         <div>
@@ -274,29 +269,29 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Default fallback password while fetching from database
+    // Default fallback passwords while fetching from database
     let REQUIRED_PASSWORD = "178239"; 
+    let CSV_IMPORT_PASSWORD = "999999"; 
     const REQUIRED_USERNAME = "admin";
-    let CSV_IMPORT_PASSWORD = "999999"; // Separate Password for CSV Uploads (Change as needed)
 
-    // Live listener for system password[cite: 1]
-db.ref('appSettings/systemPassword').on('value', (snapshot) => {[cite: 1]
-    if (snapshot.exists()) {
-        REQUIRED_PASSWORD = snapshot.val().toString();[cite: 1]
-    }
-});
+    // Live listener for system login password
+    db.ref('appSettings/systemPassword').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            REQUIRED_PASSWORD = snapshot.val().toString();
+        }
+    });
 
-// Live listener for CSV import password
-db.ref('appSettings/csvPassword').on('value', (snapshot) => {
-    if (snapshot.exists()) {
-        CSV_IMPORT_PASSWORD = snapshot.val().toString();
-    }
-});	
+    // Live listener for CSV import & record editing password
+    db.ref('appSettings/csvPassword').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            CSV_IMPORT_PASSWORD = snapshot.val().toString();
+        }
+    });	
 
     let globalLogs = [];
     let matchedRecords = [];
     let isFormLocked = false;
-    let isExistingRecord = false; // Track loaded records		
+    let isExistingRecord = false; 
 
     // Check Login state from SessionStorage
     window.onload = function() {
@@ -332,7 +327,7 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
     }
 
     function updateDateTime() {
-        if (isExistingRecord) return; // Prevent overwriting date/time for loaded past records
+        if (isExistingRecord) return; 
         const now = new Date();
         document.getElementById('entryDate').value = now.toLocaleDateString('en-GB');
         document.getElementById('entryTime').value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -421,7 +416,7 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
     }
 
     function populateForm(record, lockFields = false) {
-	isExistingRecord = true; // Mark as loaded record
+        isExistingRecord = true; 
 
         document.getElementById('custName').value = record.name || '';
         document.getElementById('address').value = record.address || '';
@@ -434,7 +429,6 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
         document.getElementById('jobsheetNo').value = record.jobsheet || '';
         document.getElementById('advancePaid').value = record.advance || '';
 
-	// Maintain original logged date and time
         document.getElementById('entryDate').value = record.date || '';
         document.getElementById('entryTime').value = record.time || '';
 
@@ -459,8 +453,6 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
                 input.classList.remove('read-only-locked');
             }
         });
-
-        <!--document.getElementById('editBanner').style.display = locked ? 'flex' : 'none';-->
     }
 
     function setupEditProtectionListeners() {
@@ -476,15 +468,15 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
     }
 
     function requestFormUnlock() {
-    if (!isFormLocked) return;[cite: 1]
-    const pwd = prompt("SECURITY VERIFICATION:\nEnter authorization password to edit this record:");[cite: 1]
-    if (pwd === CSV_IMPORT_PASSWORD) { // Updated to use CSV / Edit Password
-        setFormLockState(false);[cite: 1]
-        alert("Record unlocked! You can now make changes and print/save.");[cite: 1]
-    } else if (pwd !== null) {[cite: 1]
-        alert("Incorrect password! Editing locked.");[cite: 1]
+        if (!isFormLocked) return;
+        const pwd = prompt("SECURITY VERIFICATION:\nEnter authorization password to edit this record:");
+        if (pwd === CSV_IMPORT_PASSWORD) {
+            setFormLockState(false);
+            alert("Record unlocked! You can now make changes and print/save.");
+        } else if (pwd !== null) {
+            alert("Incorrect password! Editing locked.");
+        }
     }
-}
 
     async function autoTranslateToHindi(text) {
         if (!text.trim()) return "";
@@ -519,16 +511,15 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
 
         const imeiJobsheetDisplay = jobsheet ? `${imei} / ${jobsheet}` : imei;
 
-        // Preserve original timestamp for historical records; generate new timestamp for fresh records
-	const existingRecord = globalLogs.find(log => log.imei === imei);
-	const recordTimestamp = isExistingRecord && existingRecord ? (existingRecord.timestamp || Date.now()) : Date.now();
+        const existingRecord = globalLogs.find(log => log.imei === imei);
+        const recordTimestamp = isExistingRecord && existingRecord ? (existingRecord.timestamp || Date.now()) : Date.now();
 
-	const recordData = { 
-        name, address, model, email, imei, 
-        symptom, contact, condition, 
-        date: entryDate, time: entryTime, jobsheet, advance,
-        timestamp: recordTimestamp
-	};
+        const recordData = { 
+            name, address, model, email, imei, 
+            symptom, contact, condition, 
+            date: entryDate, time: entryTime, jobsheet, advance,
+            timestamp: recordTimestamp
+        };
 
         const safeImeiKey = imei.replace(/[.#$[\]]/g, "_");
         await db.ref('customerLogs/' + safeImeiKey).set(recordData);
@@ -721,14 +712,14 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
     }
 
     function triggerCSVImport() {
-    const password = prompt("ADMIN SECURITY VERIFICATION:\nPlease enter password to authorize CSV import:");[cite: 1]
-    
-    if (password === CSV_IMPORT_PASSWORD) {
-        document.getElementById('csvFileInput').click();[cite: 1]
-    } else if (password !== null) {
-        alert("Authentication failed: Incorrect password. CSV import unauthorized.");[cite: 1]
+        const password = prompt("ADMIN SECURITY VERIFICATION:\nPlease enter password to authorize CSV import:");
+        
+        if (password === CSV_IMPORT_PASSWORD) {
+            document.getElementById('csvFileInput').click();
+        } else if (password !== null) {
+            alert("Authentication failed: Incorrect password. CSV import unauthorized.");
+        }
     }
-}
 
     function parseCSV(text) {
         const lines = [];
@@ -845,14 +836,14 @@ db.ref('appSettings/csvPassword').on('value', (snapshot) => {
     }
 
     function clearForm() {
-    isExistingRecord = false; // Reset flag to re-enable live clock updates
-    setFormLockState(false);
-    document.querySelectorAll('.form-grid input').forEach(input => {
-        if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
-    });
-    updateDateTime(); // Restore live current date and time
-    document.getElementById('searchQuery').value = '';
-    document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
+        isExistingRecord = false; 
+        setFormLockState(false);
+        document.querySelectorAll('.form-grid input').forEach(input => {
+            if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
+        });
+        updateDateTime(); 
+        document.getElementById('searchQuery').value = '';
+        document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
     }
 </script>
 
