@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Center Job-Sheet System</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #f4f6f9; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 20px; }
+        .header-bar h2 { margin: 0; color: #1a73e8; border: none; padding: 0; }
+
+        .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .field-group { display: flex; flex-direction: column; }
+        label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #5f6368; }
+        input, select, textarea { padding: 10px; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; }
+        input.read-only-locked { background: #fff8e1 !important; color: #5f6368; border-color: #ffe082; cursor: pointer; }
+        input[readonly]:not(.read-only-locked), input[disabled] { background: #f1f3f4; color: #5f6368; cursor: default; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; align-items: center; }
+        button { padding: 10px 18px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; color: #fff; background: #1a73e8; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        button.clear-btn { background: #ea4335; }
+        button.secondary-btn { background: #34a853; }
+        button.export-btn { background: #0f9d58; }
+        button.import-btn { background: #673ab7; }
+        button.logout-btn { background: #ea4335; font-size: 12px; padding: 6px 12px; }
+        button.unlock-btn { background: #e65100; font-size: 12px; padding: 4px 8px; margin-left: 5px; }
+        
+        .search-sidebar { background: #f8f9fa; border: 1px solid #dadce0; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
+        .sidebar-title { font-size: 14px; font-weight: bold; color: #1a73e8; margin-bottom: 10px; }
+        .results-container { overflow-y: auto; max-height: 480px; display: flex; flex-direction: column; gap: 10px; }
+        .record-card { background: #fff; border: 1px solid #cd201f; border-left: 4px solid #1a73e8; padding: 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .record-card:hover { background: #e8f0fe; border-color: #1a73e8; }
+        .record-card strong { display: block; font-size: 13px; color: #202124; }
+        .record-card span { font-size: 11px; color: #5f6368; display: block; margin-top: 2px; }
+
+        .edit-status-banner { display: none; background: #fff3e0; border: 1px solid #ffe082; color: #e65100; padding: 8px 12px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; font-weight: 600; align-items: center; justify-content: space-between; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #dadce0; padding: 8px; text-align: left; }
+        th { background: #f8f9fa; color: #3c4043; }
+        
+        .log-row { cursor: pointer; transition: background-color 0.2s; }
+        .log-row:hover { background-color: #e8f0fe; }
+
+        /* Login Overlay Styles */
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f6f9; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 100%; max-width: 380px; text-align: center; }
+        .auth-card h3 { margin-top: 0; color: #1a73e8; font-size: 20px; }
+        .auth-card input { width: 100%; margin-bottom: 12px; }
+        .auth-card button { width: 100%; margin-top: 5px; }
+
+        .print-area { display: none; }
+        @media print {
+            @page { size: A4 portrait; margin: 8mm; }
+            html, body { height: 99%; overflow: hidden !important; background: #fff; margin: 0 !important; padding: 0 !important; }
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area { 
+                display: block; position: absolute; left: 0; top: 0; width: 100%;
+                box-sizing: border-box; font-family: Arial, sans-serif; page-break-after: avoid !important; page-break-inside: avoid !important;
+            }
+            .company-brand-header { text-align: center; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px;text-decoration: underline; }
+            
+            .maintenance-wrapper { height: 74vh; display: flex; flex-direction: column; justify-content: space-between; }
+            .maint-header { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 4px; }
+            .maint-section-title { font-weight: bold; font-size: 13px; background: #f0f0f0; padding: 4px; margin-top: 8px; border: 1px solid #000; }
+            .maint-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 12px; }
+            .maint-table td { border: 1px solid #000; padding: 6px; vertical-align: top; }
+            .maint-table td.label { font-weight: bold; width: 28%; background: #fafafa; }
+            .maint-body { font-size: 11.5px; line-height: 1.4; margin-top: 6px; }
+            .maint-checkbox-row { display: flex; gap: 8px; margin-top: 6px; align-items: flex-start; }
+            .maint-checkbox { width: 14px; height: 14px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: bold; }
+            .maint-footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; font-size: 12px; }
+            .maint-footer-box { border-top: 1px solid #000; padding-top: 4px; margin-top: 30px; }
+
+            .cis-wrapper { height: 48vh; display: flex; flex-direction: column; justify-content: space-between; }
+            .cis-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; }
+            .cis-table td { border: 1px solid #000; padding: 7px; vertical-align: middle; }
+            .cis-table td.label { font-weight: bold; background: #fdfdfd; }
+        }
+    </style>
+
+    <!-- Firebase SDKs (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay" class="auth-overlay">
+    <div class="auth-card">
+        <h3>Service Center Login</h3>
+        <p style="font-size: 13px; color: #5f6368; margin-bottom: 15px;">Enter credentials to access the system</p>
+        <input type="text" id="authUsername" placeholder="Username (e.g. admin)">
+        <input type="password" id="authPassword" placeholder="Password" onkeyup="if(event.key==='Enter') handleLogin()">
+        <button onclick="handleLogin()">Sign In</button>
+    </div>
+</div>
+
+<div class="container" id="appContainer">
+    <div class="header-bar">
+        <h2>Device Entry Form</h2>
+        <button class="logout-btn" onclick="handleLogout()">🔒 Logout</button>
+    </div>
+
+    <!--<div id="editBanner" class="edit-status-banner">
+        <span>🔒 Loaded existing record in Read-Only mode. Click any field or "Unlock Editing" to edit.</span>
+        <button class="unlock-btn" onclick="requestFormUnlock()">Unlock Editing</button>
+    </div>-->
+    
+    <div class="main-layout">
+        <div>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label>Customer Name (English)</label>
+                    <input type="text" id="custName" placeholder="Enter name">
+                </div>
+                <div class="field-group">
+                    <label>Address</label>
+                    <input type="text" id="address">
+                </div>
+                <div class="field-group">
+                    <label>Device Model</label>
+                    <input type="text" id="model">
+                </div>
+                <div class="field-group">
+                    <label>Email ID</label>
+                    <input type="email" id="email">
+                </div>
+                <div class="field-group">
+                    <label>IMEI / Serial / SO No.</label>
+                    <input type="text" id="imei">
+                </div>
+                <div class="field-group">
+                    <label>Symptom / Issue</label>
+                    <input type="text" id="symptom">
+                </div>
+                <div class="field-group">
+                    <label>Contact No.</label>
+                    <input type="text" id="contact">
+                </div>
+                <div class="field-group">
+                    <label>Physical Condition</label>
+                    <input type="text" id="condition">
+                </div>
+                <div class="field-group">
+                    <label>Date</label>
+                    <input type="text" id="entryDate" readonly>
+                </div>
+                <div class="field-group">
+                    <label>Jobsheet No.</label>
+                    <input type="text" id="jobsheetNo">
+                </div>
+                <div class="field-group">
+                    <label>Time</label>
+                    <input type="text" id="entryTime" readonly>
+                </div>
+                <div class="field-group">
+                    <label>Advance Paid</label>
+                    <input type="number" id="advancePaid">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button onclick="saveAndPrint('form')">Print Maintenance-English</button>
+                <button class="secondary-btn" style="background:#fbbc04; color:#000;" onclick="saveAndPrint('consent')">Print Maintenance-Hindi</button>
+                <button class="secondary-btn" onclick="saveAndPrint('slip')">Print CIS</button>
+                <button class="export-btn" onclick="exportToExcel()">Export Logs to Excel</button>
+                <button class="import-btn" onclick="triggerCSVImport()">🔒 Import CSV Backup</button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+                <button class="clear-btn" onclick="clearForm()">Clear Form</button>
+            </div>
+        </div>
+
+        <div class="search-sidebar">
+            <div class="sidebar-title">Search Records</div>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                <select id="searchType" style="width: 100%;">
+                    <option value="contact">Contact No.</option>
+                    <option value="imei">IMEI / Serial No.</option>
+                    <option value="name">Customer Name</option>
+                    <option value="model">Device Model</option>
+                </select>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="searchQuery" placeholder="Enter search term..." style="width: 100%;" onkeyup="if(event.key === 'Enter') performSearch()">
+                    <button type="button" style="background:#5f6368; padding: 8px 12px;" onclick="performSearch()">Search</button>
+                </div>
+            </div>
+            <div id="searchResults" class="results-container">
+                <span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>
+            </div>
+        </div>
+    </div>
+
+    <h3>Customer Log (Last 10 Entries)</h3>
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th>#</th><th>Name</th><th>Model</th><th>IMEI/Serial</th><th>Contact</th><th>Date</th><th>Time</th><th>Jobsheet</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div id="printableArea" class="print-area"></div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAB3qoOSyMHPbA25e6_oRahSCo67Kbaud8",
+        authDomain: "my-jobsheet-system.firebaseapp.com",
+        databaseURL: "https://my-jobsheet-system-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "my-jobsheet-system",
+        storageBucket: "my-jobsheet-system.firebasestorage.app",
+        messagingSenderId: "663436272809",
+        appId: "1:663436272809:web:e766fa9548f67b2ba375b8"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Default fallback password while fetching from database
+    let REQUIRED_PASSWORD = "178239"; 
+    const REQUIRED_USERNAME = "admin";
+
+    // Live listener: Updates password instantly across all connected devices when changed in Firebase
+    db.ref('appSettings/systemPassword').on('value', (snapshot) => {
+        if (snapshot.exists()) {
+            REQUIRED_PASSWORD = snapshot.val().toString();
+        }
+    });
+
+    let globalLogs = [];
+    let matchedRecords = [];
+    let isFormLocked = false;
+    let isExistingRecord = false; // Track loaded records		
+
+    // Check Login state from SessionStorage
+    window.onload = function() {
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            listenToDatabase();
+        } else {
+            document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+        }
+        setupEditProtectionListeners();
+    };
+
+    function handleLogin() {
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value;
+
+        if (username === REQUIRED_USERNAME && password === REQUIRED_PASSWORD) {
+            sessionStorage.setItem('isLoggedIn', 'true');
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            listenToDatabase();
+        } else {
+            alert("Invalid Credentials! Username or Password incorrect.");
+        }
+    }
+
+    function handleLogout() {
+        sessionStorage.removeItem('isLoggedIn');
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+    }
+
+    function updateDateTime() {
+        if (isExistingRecord) return; // Prevent overwriting date/time for loaded past records
+        const now = new Date();
+        document.getElementById('entryDate').value = now.toLocaleDateString('en-GB');
+        document.getElementById('entryTime').value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    function listenToDatabase() {
+        db.ref('customerLogs').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                globalLogs = Object.values(data);
+                globalLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            } else {
+                globalLogs = [];
+            }
+            renderLogTable();
+        });
+    }
+
+    function renderLogTable() {
+        const tbody = document.querySelector('#logTable tbody');
+        tbody.innerHTML = '';
+        const displayLogs = globalLogs.slice(0, 10);
+
+        displayLogs.forEach((log, index) => {
+            const row = tbody.insertRow();
+            row.className = 'log-row';
+            
+            row.onclick = () => {
+                populateForm(log, true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            row.insertCell(0).innerText = index + 1;
+            row.insertCell(1).innerText = log.name || '';
+            row.insertCell(2).innerText = log.model || '';
+            row.insertCell(3).innerText = log.imei || '';
+            row.insertCell(4).innerText = log.contact || '';
+            row.insertCell(5).innerText = log.date || '';
+            row.insertCell(6).innerText = log.time || '';
+            row.insertCell(7).innerText = log.jobsheet || '';
+        });
+    }
+
+    function performSearch() {
+        const searchType = document.getElementById('searchType').value;
+        const searchVal = document.getElementById('searchQuery').value.trim().toLowerCase();
+        const resultsContainer = document.getElementById('searchResults');
+        resultsContainer.innerHTML = '';
+
+        if (!searchVal) {
+            alert("Please enter a search term.");
+            return;
+        }
+
+        matchedRecords = globalLogs.filter(log => {
+            const fieldValue = (log[searchType] || '').toString().toLowerCase();
+            return fieldValue.includes(searchVal);
+        });
+
+        matchedRecords.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        if (matchedRecords.length === 0) {
+            resultsContainer.innerHTML = `<span style="font-size: 12px; color: #d93025;">No matching records found.</span>`;
+            return;
+        }
+
+        matchedRecords.forEach((log) => {
+            const card = document.createElement('div');
+            card.className = 'record-card';
+            card.onclick = () => {
+                populateForm(log, true);
+            };
+
+            card.innerHTML = `
+                <strong>${log.name || 'Unknown'} | ${log.model || 'Unknown Model'}</strong>
+                <span>JS: ${log.jobsheet || 'N/A'} | IMEI: ${log.imei || 'N/A'}</span>
+                <span>Contact: ${log.contact || 'N/A'}</span>
+                <span>Date: ${log.date || ''} ${log.time || ''}</span>
+            `;
+            resultsContainer.appendChild(card);
+        });
+        
+        populateForm(matchedRecords[0], true);
+    }
+
+    function populateForm(record, lockFields = false) {
+	isExistingRecord = true; // Mark as loaded record
+
+        document.getElementById('custName').value = record.name || '';
+        document.getElementById('address').value = record.address || '';
+        document.getElementById('model').value = record.model || '';
+        document.getElementById('email').value = record.email || '';
+        document.getElementById('imei').value = record.imei || '';
+        document.getElementById('symptom').value = record.symptom || '';
+        document.getElementById('contact').value = record.contact || '';
+        document.getElementById('condition').value = record.condition || '';
+        document.getElementById('jobsheetNo').value = record.jobsheet || '';
+        document.getElementById('advancePaid').value = record.advance || '';
+
+	// Maintain original logged date and time
+        document.getElementById('entryDate').value = record.date || '';
+        document.getElementById('entryTime').value = record.time || '';
+
+        if (lockFields) {
+            setFormLockState(true);
+        } else {
+            setFormLockState(false);
+        }
+    }
+
+    function setFormLockState(locked) {
+        isFormLocked = locked;
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'jobsheetNo', 'advancePaid'];
+        
+        editableIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (locked) {
+                input.readOnly = true;
+                input.classList.add('read-only-locked');
+            } else {
+                input.readOnly = false;
+                input.classList.remove('read-only-locked');
+            }
+        });
+
+        <!--document.getElementById('editBanner').style.display = locked ? 'flex' : 'none';-->
+    }
+
+    function setupEditProtectionListeners() {
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'jobsheetNo', 'advancePaid'];
+        editableIds.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('click', () => {
+                if (isFormLocked) {
+                    requestFormUnlock();
+                }
+            });
+        });
+    }
+
+    function requestFormUnlock() {
+        if (!isFormLocked) return;
+        const pwd = prompt("SECURITY VERIFICATION:\nEnter authorization password to edit this record:");
+        if (pwd === REQUIRED_PASSWORD) {
+            setFormLockState(false);
+            alert("Record unlocked! You can now make changes and print/save.");
+        } else if (pwd !== null) {
+            alert("Incorrect password! Editing locked.");
+        }
+    }
+
+    async function autoTranslateToHindi(text) {
+        if (!text.trim()) return "";
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=hi&dt=t&q=${encodeURIComponent(text)}`);
+            const data = await res.json();
+            return data[0][0][0] || text;
+        } catch (e) {
+            return text;
+        }
+    }
+
+    async function saveAndPrint(docType) {
+        const name = document.getElementById('custName').value.trim();
+        const imei = document.getElementById('imei').value.trim();
+
+        if (!name || !imei) {
+            alert("Please enter Customer Name and IMEI / Serial Number.");
+            return;
+        }
+
+        const model = document.getElementById('model').value;
+        const contact = document.getElementById('contact').value;
+        const address = document.getElementById('address').value;
+        const email = document.getElementById('email').value;
+        const symptom = document.getElementById('symptom').value;
+        const condition = document.getElementById('condition').value;
+        const entryDate = document.getElementById('entryDate').value;
+        const entryTime = document.getElementById('entryTime').value;
+        const jobsheet = document.getElementById('jobsheetNo').value.trim();
+        const advance = document.getElementById('advancePaid').value;
+
+        const imeiJobsheetDisplay = jobsheet ? `${imei} / ${jobsheet}` : imei;
+
+        // Preserve original timestamp for historical records; generate new timestamp for fresh records
+	const existingRecord = globalLogs.find(log => log.imei === imei);
+	const recordTimestamp = isExistingRecord && existingRecord ? (existingRecord.timestamp || Date.now()) : Date.now();
+
+	const recordData = { 
+        name, address, model, email, imei, 
+        symptom, contact, condition, 
+        date: entryDate, time: entryTime, jobsheet, advance,
+        timestamp: recordTimestamp
+	};
+
+        const safeImeiKey = imei.replace(/[.#$[\]]/g, "_");
+        await db.ref('customerLogs/' + safeImeiKey).set(recordData);
+
+        const printArea = document.getElementById('printableArea');
+
+        if (docType === 'form') {
+            printArea.innerHTML = `
+                <div class="maintenance-wrapper">
+                    <div>
+                        <div class="company-brand-header">Elite Communication</div>
+                        <div class="maint-header">MAINTENANCE MODE & DATA PROTECTION CONSENT FORM</div>
+                        <div class="maint-section-title">DEVICE INFORMATION:</div>
+                        <table class="maint-table">
+                            <tr><td class="label">Customer Name:</td><td>${name}</td></tr>
+                            <tr><td class="label">Device Model:</td><td>${model}</td></tr>
+                            <tr><td class="label">Device IMEI/Serial Number/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
+                            <tr><td class="label">Date/Time of Submission:</td><td>${entryDate} ${entryTime}</td></tr>
+                        </table>
+                        <div class="maint-section-title">MAINTENANCE MODE FEATURE EXPLANATION</div>
+                        <div class="maint-body">
+                            <p style="margin:4px 0;">I understand and acknowledge that:</p>
+                            <strong>1. WHAT IS MAINTENANCE MODE?</strong>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">✓</div>
+                                <div>I have been informed that Maintenance Mode is a privacy protection feature that:
+                                    <ul style="margin:2px 0 6px 14px; padding:0;">
+                                        <li>Creates a temporary separate user account on my device</li>
+                                        <li>Hides all my personal data including: photos, videos, documents, messages, and contacts</li>
+                                        <li>Prevents access to my personal apps and accounts</li>
+                                        <li>Allows technicians to access only essential system functions needed for diagnostics and repair</li>
+                                        <li>Automatically deletes all data created in Maintenance Mode when I exit the mode</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <strong>2. Condition of Product during Hand over for Repair</strong>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have handed over phone in Maintenance Mode enabled condition, my personal information will not be accessible to any service center staff member.</div></div>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have collected the device back after registration of call because maintenance mode could not be activated due to device being dead or blank display & I will bring back the device at the center post part receipt.</div></div>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have handed over device in Dead or Screen blank condition and that Maintenance Mode is not activated, I agree for following:
+                                <ul style="margin:2px 0 0 14px; padding:0;">
+                                    <li>The service center will perform diagnostics without Maintenance Mode.</li>
+                                    <li>Limited data access may be required for testing purposes.</li>
+                                    <li>I assume full responsibility for data protection and loss of data.</li>
+                                </ul>
+                            </div></div>
+                            <p style="margin-top:8px;">I have carefully read and understood this entire consent form.</p>
+                        </div>
+                    </div>
+                    <div class="maint-footer-grid">
+                        <div>
+                            <p style="margin:3px 0;"><strong>Customer Name:</strong> ${name}</p>
+                            <p style="margin:3px 0;"><strong>Date:</strong> ${entryDate}</p>
+                            <p style="margin:3px 0;"><strong>Customer Contact No:</strong> ${contact}</p>
+                            <div class="maint-footer-box">Customer Signature</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <div class="maint-footer-box">Service Center Stamp/Seal/Sign</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (docType === 'slip') {
+            printArea.innerHTML = `
+                <div class="cis-wrapper">
+                    <div>
+                        <div class="company-brand-header" style="margin-bottom: 2px;">Elite Communication</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #000; padding-bottom:6px; margin-bottom:12px;">
+                            <svg style="height:24px; width:auto;" viewBox="0 0 200 30" fill="#000000" xmlns="http://www.w3.org/2000/svg">
+                                <text x="0" y="24" font-family="'Trebuchet MS', Arial, sans-serif" font-weight="600" font-size="20" letter-spacing="-1">SAMSUNG</text>
+                            </svg>
+                            <span style="font-size:13px; font-weight:bold; text-align:right;">CONTACT US: 9569894030<br>TOKEN NO. _____</span>
+                        </div>
+                        <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:14px; letter-spacing:0.5px;">CUSTOMER INFORMATION SLIP</div>
+                        <table class="cis-table">
+                            <tr><td class="label" style="width:22%;">DATE OF VISIT:</td><td style="width:28%;">${entryDate}</td><td class="label" style="width:22%;">TIME:</td><td style="width:28%;">${entryTime}</td></tr>
+                            <tr><td class="label">CUSTOMER NAME:</td><td>${name}</td><td class="label">INVOICE NO / DT:</td><td></td></tr>
+                            <tr><td class="label">CUSTOMER CONTACT:</td><td>${contact}</td><td class="label">ALTERNATE NO:</td><td></td></tr>
+                            <tr><td class="label">ADDRESS:</td><td colspan="3">${address}</td></tr>
+                            <tr><td class="label">MODEL NO:</td><td>${model}</td><td class="label">IMEI 1:</td><td>${imei}</td></tr>
+                            <tr><td class="label">SERIAL NO:</td><td></td><td class="label">EMAIL:</td><td>${email}</td></tr>
+                            <tr><td class="label">SYMPTOM / ISSUE:</td><td>${symptom}</td><td class="label">CUSTOMER SIGN:</td><td></td></tr>
+                            <tr><td class="label">PHYSICAL CONDITION:</td><td>${condition}</td><td class="label">ADVANCE PAID:</td><td>${advance}</td></tr>
+                            <tr><td class="label">JOBSHEET NO:</td><td>${jobsheet}</td><td class="label">CCO SIGN:</td><td></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else if (docType === 'consent') {
+            const hindiName = await autoTranslateToHindi(name);
+            printArea.innerHTML = `
+                <div class="maintenance-wrapper">
+                    <div>
+                        <div class="company-brand-header">Elite Communication</div>
+                        <div class="maint-header">मेंटेनेंस मोड एवं डेटा सुरक्षा सहमति फॉर्म</div>
+                        <div class="maint-section-title">डिवाइस की जानकारी</div>
+                        <table class="maint-table">
+                            <tr><td class="label">ग्राहक का नाम:</td><td>${hindiName} (${name})</td></tr>
+                            <tr><td class="label">डिवाइस मॉडल:</td><td>${model}</td></tr>
+                            <tr><td class="label">डिवाइस IMEI/सीरियल नंबर/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
+                            <tr><td class="label">जमा करने की दिनांक/समय:</td><td>${entryDate} ${entryTime}</td></tr>
+                        </table>
+                        <div class="maint-section-title">मेंटेनेंस मोड फीचर की जानकारी</div>
+                        <div class="maint-body">
+                            <p style="margin:4px 0;">मैं समझता/समझती हूँ और स्वीकार करता/करती हूँ किः</p>
+                            <strong>1. मेंटेनेंस मोड क्या है?</strong>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">✓</div>
+                                <div>मुझे बताया गया है कि मेंटेनेंस मोड एक गोपनीयता सुरक्षा सुविधा है, जो:
+                                    <ul style="margin:2px 0 6px 14px; padding:0;">
+                                        <li>मेरे डिवाइस पर एक अस्थायी अलग यूज़र अकाउंट बनाती है।</li>
+                                        <li>मेरी सभी व्यक्तिगत जानकारी, जिसमें फोटो, वीडियो, दस्तावेज़, संदेश और कॉन्टैक्ट शामिल हैं, को छिपाती है।</li>
+                                        <li>मेरी व्यक्तिगत ऐप्स और अकाउंट्स तक पहुँच को रोकती है।</li>
+                                        <li>तकनीशियन को केवल डायग्नोस्टिक्स और रिपेयर के लिए आवश्यक सिस्टम फ़ंक्शन तक पहुँच प्रदान करती है।</li>
+                                        <li>मेंटेनेंस मोड से बाहर निकलने पर इस मोड में बनाया गया सारा डेटा अपने आप डिलीट कर देती है।</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <strong>2. रिपेयर के लिए उपरांत सौंपने की स्थिति</strong>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने फोन को मेंटेनेंस मोड सक्षम स्थिति में सौंपा है। मेरी व्यक्तिगत जानकारी किसी भी सर्विस सेंटर स्टाफ सदस्य को उपलब्ध नहीं होगी।</div></div>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने कॉल रजिस्ट्रेशन के बाद डिवाइस वापस ले लिया है, क्योंकि डिवाइस डेड होने या डिस्प्ले ब्लैंक होने के कारण मेंटेनेंस मोड सक्रिय नहीं किया जा सका। पार्ट प्राप्त होने के बाद मैं डिवाइस को दोबारा सर्विस सेंटर पर लाऊँगा/लाऊँगी।</div></div>
+                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने डिवाइस डेड या स्क्रीन ब्लैंक स्थिति में सौंपा है और मेंटेनेंस मोड सक्रिय नहीं है। मैं निम्नलिखित के लिए सहमत हूँ:
+                                <ul style="margin:2px 0 0 14px; padding:0;">
+                                    <li>सर्विस सेंटर मेंटेनेंस मोड के बिना डायग्नोस्टिक्स करेगा।</li>
+                                    <li>परीक्षण के लिए सीमित डेटा एक्सेस की आवश्यकता हो सकती है।</li>
+                                    <li>मैं डेटा की सुरक्षा और डेटा की किसी भी हानि की पूरी जिम्मेदारी स्वीकार करता/करती हूँ।</li>
+                                </ul>
+                            </div></div>
+                            <p style="margin-top:8px;">मैंने इस पूरे सहमति फॉर्म को ध्यानपूर्वक पढ़ा और समझा है।</p>
+                        </div>
+                    </div>
+                    <div class="maint-footer-grid">
+                        <div>
+                            <p style="margin:3px 0;"><strong>ग्राहक का नाम:</strong> ${hindiName}</p>
+                            <p style="margin:3px 0;"><strong>दिनांक:</strong> ${entryDate}</p>
+                            <p style="margin:3px 0;"><strong>ग्राहक संपर्क नंबर:</strong> ${contact}</p>
+                            <div class="maint-footer-box">ग्राहक के हस्ताक्षर</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
+                            <div class="maint-footer-box">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        setTimeout(() => { window.print(); }, 300);
+    }
+
+    function exportToExcel() {
+        if (globalLogs.length === 0) {
+            alert("No customer logs available to export.");
+            return;
+        }
+
+        const headers = [
+            "S.No", "Date", "Time", "Customer Name", "Contact No", "Address", 
+            "Email ID", "Device Model", "IMEI / Serial / SO No", "Jobsheet No", 
+            "Symptom / Issue", "Physical Condition", "Advance Paid"
+        ];
+
+        let csvContent = "\uFEFF" + headers.map(h => `"${h}"`).join(",") + "\n";
+
+        globalLogs.forEach((log, index) => {
+            const row = [
+                index + 1,
+                log.date || '',
+                log.time || '',
+                log.name || '',
+                log.contact || '',
+                log.address || '',
+                log.email || '',
+                log.model || '',
+                log.imei || '',
+                log.jobsheet || '',
+                log.symptom || '',
+                log.condition || '',
+                log.advance || '0'
+            ];
+            csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(",") + "\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Customer_Logs_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function triggerCSVImport() {
+        const password = prompt("ADMIN SECURITY VERIFICATION:\nPlease enter password to authorize CSV import:");
+        
+        if (password === REQUIRED_PASSWORD) {
+            document.getElementById('csvFileInput').click();
+        } else if (password !== null) {
+            alert("Authentication failed: Incorrect password. CSV import unauthorized.");
+        }
+    }
+
+    function parseCSV(text) {
+        const lines = [];
+        let row = [];
+        let inQuotes = false;
+        let currentField = '';
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i + 1];
+
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                row.push(currentField.trim());
+                currentField = '';
+            } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                if (char === '\r' && nextChar === '\n') i++;
+                row.push(currentField.trim());
+                if (row.some(cell => cell !== '')) lines.push(row);
+                row = [];
+                currentField = '';
+            } else {
+                currentField += char;
+            }
+        }
+        if (currentField !== '' || row.length > 0) {
+            row.push(currentField.trim());
+            if (row.some(cell => cell !== '')) lines.push(row);
+        }
+        return lines;
+    }
+
+    async function handleCSVUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const content = e.target.result;
+            const rows = parseCSV(content);
+
+            if (rows.length < 2) {
+                alert("The CSV file is empty or missing data rows.");
+                event.target.value = '';
+                return;
+            }
+
+            const headerRow = rows[0].map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+            const findIndex = (keywords) => headerRow.findIndex(h => keywords.some(k => h.includes(k)));
+            
+            const idxDate = findIndex(['date']);
+            const idxTime = findIndex(['time']);
+            const idxName = findIndex(['customer', 'name']);
+            const idxContact = findIndex(['contact', 'phone', 'mobile']);
+            const idxAddress = findIndex(['address']);
+            const idxEmail = findIndex(['email']);
+            const idxModel = findIndex(['model']);
+            const idxImei = findIndex(['imei', 'serial']);
+            const idxJobsheet = findIndex(['jobsheet']);
+            const idxSymptom = findIndex(['symptom', 'issue']);
+            const idxCondition = findIndex(['condition']);
+            const idxAdvance = findIndex(['advance']);
+
+            let importedCount = 0;
+            const updateBatch = {};
+
+            for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i];
+                const imei = idxImei !== -1 ? cols[idxImei] : '';
+                
+                if (!imei) continue;
+
+                const safeImeiKey = imei.replace(/[.#$[\]]/g, "_");
+                const record = {
+                    date: idxDate !== -1 ? cols[idxDate] || '' : '',
+                    time: idxTime !== -1 ? cols[idxTime] || '' : '',
+                    name: idxName !== -1 ? cols[idxName] || '' : '',
+                    contact: idxContact !== -1 ? cols[idxContact] || '' : '',
+                    address: idxAddress !== -1 ? cols[idxAddress] || '' : '',
+                    email: idxEmail !== -1 ? cols[idxEmail] || '' : '',
+                    model: idxModel !== -1 ? cols[idxModel] || '' : '',
+                    imei: imei,
+                    jobsheet: idxJobsheet !== -1 ? cols[idxJobsheet] || '' : '',
+                    symptom: idxSymptom !== -1 ? cols[idxSymptom] || '' : '',
+                    condition: idxCondition !== -1 ? cols[idxCondition] || '' : '',
+                    advance: idxAdvance !== -1 ? cols[idxAdvance] || '0' : '0',
+                    timestamp: Date.now() - i
+                };
+
+                updateBatch['customerLogs/' + safeImeiKey] = record;
+                importedCount++;
+            }
+
+            if (importedCount === 0) {
+                alert("No valid records found in the CSV. Make sure your file contains an 'IMEI / Serial' column.");
+            } else {
+                try {
+                    await db.ref().update(updateBatch);
+                    alert(`Successfully imported ${importedCount} record(s) to Firebase!`);
+                } catch (err) {
+                    alert("Import failed: " + err.message);
+                }
+            }
+            event.target.value = '';
+        };
+
+        reader.readAsText(file);
+    }
+
+    function clearForm() {
+    isExistingRecord = false; // Reset flag to re-enable live clock updates
+    setFormLockState(false);
+    document.querySelectorAll('.form-grid input').forEach(input => {
+        if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
+    });
+    updateDateTime(); // Restore live current date and time
+    document.getElementById('searchQuery').value = '';
+    document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
+    }
+</script>
+
+</body>
+</html>
