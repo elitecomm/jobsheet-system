@@ -705,7 +705,18 @@
             `;
         }
 
-        setTimeout(() => { window.print(); }, 300);
+        // Wait for all images to complete loading before launching the print dialog
+        const images = printArea.querySelectorAll('img');
+        const imagePromises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+            });
+        });
+
+        await Promise.all(imagePromises);
+        setTimeout(() => { window.print(); }, 100);
     }
 
     function exportToExcel() {
