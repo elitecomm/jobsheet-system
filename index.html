@@ -17,7 +17,7 @@
         .field-group { display: flex; flex-direction: column; }
         label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #5f6368; }
         input, select, textarea { padding: 10px; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; }
-        input.read-only-locked { background: #fff8e1 !important; color: #5f6368; border-color: #ffe082; cursor: pointer; }
+        input.read-only-locked, select.read-only-locked { background: #fff8e1 !important; color: #5f6368; border-color: #ffe082; cursor: pointer; }
         input[readonly]:not(.read-only-locked), input[disabled] { background: #f1f3f4; color: #5f6368; cursor: default; }
         .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px; align-items: center; }
         button { padding: 10px 18px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; color: #fff; background: #1a73e8; transition: 0.2s; }
@@ -147,9 +147,20 @@
             .maint-table td.label { font-weight: bold; width: 28%; background: #fafafa; }
             .maint-body { font-size: 11.5px; line-height: 1.4; margin-top: 6px; }
             .maint-checkbox-row { display: flex; gap: 8px; margin-top: 6px; align-items: flex-start; }
-            .maint-checkbox { width: 14px; height: 14px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; font-weight: bold; }
+            .maint-checkbox { width: 14px; height: 14px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 24px; font-weight: bold; overflow: visible; }
             .maint-footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; font-size: 12px; }
-            .maint-footer-box { border-top: 1px solid #000; padding-top: 4px; margin-top: 30px; }
+            .maint-footer-box { border-top: 1px solid #000; padding-top: 4px; margin-top: 15px; }
+
+            .print-stamp {
+                display: block !important;
+                visibility: visible !important;
+                max-height: 110px !important;
+                max-width: 220px !important;
+                width: auto !important;
+                margin: 0 auto -10px auto !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
 
             .cis-wrapper { 
                 height: auto !important; 
@@ -233,6 +244,14 @@
                 <div class="field-group">
                     <label>Physical Condition</label>
                     <input type="text" id="condition">
+                </div>
+                <div class="field-group">
+                    <label>Handover Condition</label>
+                    <select id="handoverCondition">
+                        <option value="1">Option 1: Maintenance Mode Enabled</option>
+                        <option value="2">Option 2: Collected back post registration</option>
+                        <option value="3">Option 3: Dead / Blank Display Screen</option>
+                    </select>
                 </div>
                 <div class="field-group">
                     <label>Date</label>
@@ -587,6 +606,7 @@
         document.getElementById('symptom').value = record.symptom || '';
         document.getElementById('contact').value = record.contact || '';
         document.getElementById('condition').value = record.condition || '';
+        document.getElementById('handoverCondition').value = record.handoverCondition || '1';
         document.getElementById('jobsheetNo').value = record.jobsheet || '';
         document.getElementById('advancePaid').value = record.advance || '';
 
@@ -602,22 +622,32 @@
 
     function setFormLockState(locked) {
         isFormLocked = locked;
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'jobsheetNo', 'advancePaid'];
         
         editableIds.forEach(id => {
             const input = document.getElementById(id);
             if (locked) {
-                input.readOnly = true;
-                input.classList.add('read-only-locked');
+                if (input.tagName === 'SELECT') {
+                    input.disabled = true;
+                    input.classList.add('read-only-locked');
+                } else {
+                    input.readOnly = true;
+                    input.classList.add('read-only-locked');
+                }
             } else {
-                input.readOnly = false;
-                input.classList.remove('read-only-locked');
+                if (input.tagName === 'SELECT') {
+                    input.disabled = false;
+                    input.classList.remove('read-only-locked');
+                } else {
+                    input.readOnly = false;
+                    input.classList.remove('read-only-locked');
+                }
             }
         });
     }
 
     function setupEditProtectionListeners() {
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'jobsheetNo', 'advancePaid'];
         editableIds.forEach(id => {
             const input = document.getElementById(id);
             input.addEventListener('click', () => {
@@ -665,6 +695,7 @@
         const email = document.getElementById('email').value;
         const symptom = document.getElementById('symptom').value;
         const condition = document.getElementById('condition').value;
+        const handoverCondition = document.getElementById('handoverCondition').value;
         const entryDate = document.getElementById('entryDate').value;
         const entryTime = document.getElementById('entryTime').value;
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
@@ -675,7 +706,7 @@
 
         const recordData = { 
             name, address, model, email, imei, 
-            symptom, contact, condition, 
+            symptom, contact, condition, handoverCondition,
             date: entryDate, time: entryTime, jobsheet, advance,
             timestamp: recordTimestamp
         };
@@ -705,6 +736,7 @@
         const email = document.getElementById('email').value;
         const symptom = document.getElementById('symptom').value;
         const condition = document.getElementById('condition').value;
+        const handoverCondition = document.getElementById('handoverCondition').value;
         const entryDate = document.getElementById('entryDate').value;
         const entryTime = document.getElementById('entryTime').value;
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
@@ -743,15 +775,24 @@
                                 </div>
                             </div>
                             <strong>2. Condition of Product during Hand over for Repair</strong>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have handed over phone in Maintenance Mode enabled condition, my personal information will not be accessible to any service center staff member.</div></div>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have collected the device back after registration of call because maintenance mode could not be activated due to device being dead or blank display & I will bring back the device at the center post part receipt.</div></div>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>I confirm that I have handed over device in Dead or Screen blank condition and that Maintenance Mode is not activated, I agree for following:
-                                <ul style="margin:2px 0 0 14px; padding:0;">
-                                    <li>The service center will perform diagnostics without Maintenance Mode.</li>
-                                    <li>Limited data access may be required for testing purposes.</li>
-                                    <li>I assume full responsibility for data protection and loss of data.</li>
-                                </ul>
-                            </div></div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '1' ? '✓' : ''}</div>
+                                <div>I confirm that I have handed over phone in Maintenance Mode enabled condition, my personal information will not be accessible to any service center staff member.</div>
+                            </div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '2' ? '✓' : ''}</div>
+                                <div>I confirm that I have collected the device back after registration of call because maintenance mode could not be activated due to device being dead or blank display & I will bring back the device at the center post part receipt.</div>
+                            </div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '3' ? '✓' : ''}</div>
+                                <div>I confirm that I have handed over device in Dead or Screen blank condition and that Maintenance Mode is not activated, I agree for following:
+                                    <ul style="margin:2px 0 0 14px; padding:0;">
+                                        <li>The service center will perform diagnostics without Maintenance Mode.</li>
+                                        <li>Limited data access may be required for testing purposes.</li>
+                                        <li>I assume full responsibility for data protection and loss of data.</li>
+                                    </ul>
+                                </div>
+                            </div>
                             <p style="margin-top:8px;">I have carefully read and understood this entire consent form.</p>
                         </div>
                     </div>
@@ -762,8 +803,9 @@
                             <p style="margin:3px 0;"><strong>Customer Contact No:</strong> ${contact}</p>
                             <div class="maint-footer-box">Customer Signature</div>
                         </div>
-                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
-                            <div class="maint-footer-box">Service Center Stamp/Seal/Sign</div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
+                            <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
+                            <div class="maint-footer-box" style="text-align: left;">Service Center Stamp/Seal/Sign</div>
                         </div>
                     </div>
                 </div>
@@ -827,15 +869,24 @@
                                 </div>
                             </div>
                             <strong>2. रिपेयर के लिए उपरांत सौंपने की स्थिति</strong>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने फोन को मेंटेनेंस मोड सक्षम स्थिति में सौंपा है। मेरी व्यक्तिगत जानकारी किसी भी सर्विस सेंटर स्टाफ सदस्य को उपलब्ध नहीं होगी।</div></div>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने कॉल रजिस्ट्रेशन के बाद डिवाइस वापस ले लिया है, क्योंकि डिवाइस डेड होने या डिस्प्ले ब्लैंक होने के कारण मेंटेनेंस मोड सक्रिय नहीं किया जा सका। पार्ट प्राप्त होने के बाद मैं डिवाइस को दोबारा सर्विस सेंटर पर लाऊँगा/लाऊँगी।</div></div>
-                            <div class="maint-checkbox-row"><div class="maint-checkbox"></div><div>मैं पुष्टि करता/करती हूँ कि मैंने डिवाइस डेड या स्क्रीन ब्लैंक स्थिति में सौंपा है और मेंटेनेंस मोड सक्रिय नहीं है। मैं निम्नलिखित के लिए सहमत हूँ:
-                                <ul style="margin:2px 0 0 14px; padding:0;">
-                                    <li>सर्विस सेंटर मेंटेनेंस मोड के बिना डायग्नोस्टिक्स करेगा।</li>
-                                    <li>परीक्षण के लिए सीमित डेटा एक्सेस की आवश्यकता हो सकती है।</li>
-                                    <li>मैं डेटा की सुरक्षा और डेटा की किसी भी हानि की पूरी जिम्मेदारी स्वीकार करता/करती हूँ।</li>
-                                </ul>
-                            </div></div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '1' ? '✓' : ''}</div>
+                                <div>मैं पुष्टि करता/करती हूँ कि मैंने फोन को मेंटेनेंस मोड सक्षम स्थिति में सौंपा है। मेरी व्यक्तिगत जानकारी किसी भी सर्विस सेंटर स्टाफ सदस्य को उपलब्ध नहीं होगी।</div>
+                            </div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '2' ? '✓' : ''}</div>
+                                <div>मैं पुष्टि करता/करती हूँ कि मैंने कॉल रजिस्ट्रेशन के बाद डिवाइस वापस ले लिया है, क्योंकि डिवाइस डेड होने या डिस्प्ले ब्लैंक होने के कारण मेंटेनेंस मोड सक्रिय नहीं किया जा सका। पार्ट प्राप्त होने के बाद मैं डिवाइस को दोबारा सर्विस सेंटर पर लाऊँगा/लाऊँगी।</div>
+                            </div>
+                            <div class="maint-checkbox-row">
+                                <div class="maint-checkbox">${handoverCondition === '3' ? '✓' : ''}</div>
+                                <div>मैं पुष्टि करता/करती हूँ कि मैंने डिवाइस डेड या स्क्रीन ब्लैंक स्थिति में सौंपा है और मेंटेनेंस मोड सक्रिय नहीं है। मैं निम्नलिखित के लिए सहमत हूँ:
+                                    <ul style="margin:2px 0 0 14px; padding:0;">
+                                        <li>सर्विस सेंटर मेंटेनेंस मोड के बिना डायग्नोस्टिक्स करेगा।</li>
+                                        <li>परीक्षण के लिए सीमित डेटा एक्सेस की आवश्यकता हो सकती है।</li>
+                                        <li>मैं डेटा की सुरक्षा और डेटा की किसी भी हानि की पूरी जिम्मेदारी स्वीकार करता/करती हूँ।</li>
+                                    </ul>
+                                </div>
+                            </div>
                             <p style="margin-top:8px;">मैंने इस पूरे सहमति फॉर्म को ध्यानपूर्वक पढ़ा और समझा है।</p>
                         </div>
                     </div>
@@ -846,8 +897,9 @@
                             <p style="margin:3px 0;"><strong>ग्राहक संपर्क नंबर:</strong> ${contact}</p>
                             <div class="maint-footer-box">ग्राहक के हस्ताक्षर</div>
                         </div>
-                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
-                            <div class="maint-footer-box">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
+                            <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
+                            <div class="maint-footer-box" style="text-align: left;">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
                         </div>
                     </div>
                 </div>
@@ -876,7 +928,7 @@
         const headers = [
             "S.No", "Date", "Time", "Customer Name", "Contact No", "Address", 
             "Email ID", "Device Model", "IMEI / Serial / SO No", "Jobsheet No", 
-            "Symptom / Issue", "Physical Condition", "Advance Paid"
+            "Symptom / Issue", "Physical Condition", "Handover Option", "Advance Paid"
         ];
 
         let csvContent = "\uFEFF" + headers.map(h => `"${h}"`).join(",") + "\n";
@@ -895,6 +947,7 @@
                 log.jobsheet || '',
                 log.symptom || '',
                 log.condition || '',
+                log.handoverCondition || '1',
                 log.advance || '0'
             ];
             csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(",") + "\n";
@@ -986,6 +1039,7 @@
             const idxJobsheet = findIndex(['jobsheet']);
             const idxSymptom = findIndex(['symptom', 'issue']);
             const idxCondition = findIndex(['condition']);
+            const idxHandover = findIndex(['handover']);
             const idxAdvance = findIndex(['advance']);
 
             let importedCount = 0;
@@ -1010,6 +1064,7 @@
                     jobsheet: idxJobsheet !== -1 ? cols[idxJobsheet] || '' : '',
                     symptom: idxSymptom !== -1 ? cols[idxSymptom] || '' : '',
                     condition: idxCondition !== -1 ? cols[idxCondition] || '' : '',
+                    handoverCondition: idxHandover !== -1 ? cols[idxHandover] || '1' : '1',
                     advance: idxAdvance !== -1 ? cols[idxAdvance] || '0' : '0',
                     timestamp: Date.now() - i
                 };
@@ -1040,6 +1095,7 @@
         document.querySelectorAll('.form-grid input').forEach(input => {
             if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
         });
+        document.getElementById('handoverCondition').value = '1';
         updateDateTime(); 
         document.getElementById('searchQuery').value = '';
         document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
