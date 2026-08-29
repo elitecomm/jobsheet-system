@@ -16,6 +16,7 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .field-group { display: flex; flex-direction: column; }
         label { font-weight: 600; font-size: 13px; margin-bottom: 5px; color: #5f6368; }
+        label .required { color: #ea4335; font-weight: bold; }
         input, select, textarea { padding: 10px; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; }
         input.read-only-locked, select.read-only-locked { background: #fff8e1 !important; color: #5f6368; border-color: #ffe082; cursor: pointer; }
         input[readonly]:not(.read-only-locked), input[disabled] { background: #f1f3f4; color: #5f6368; cursor: default; }
@@ -214,7 +215,7 @@
         <div>
             <div class="form-grid">
                 <div class="field-group">
-                    <label>Customer Name (English)</label>
+                    <label>Customer Name (English) <span class="required">*</span></label>
                     <input type="text" id="custName" placeholder="Enter name">
                 </div>
                 <div class="field-group">
@@ -230,7 +231,7 @@
                     <input type="email" id="email">
                 </div>
                 <div class="field-group">
-                    <label>IMEI / Serial / SO No.</label>
+                    <label>IMEI / Serial / SO No. <span class="required">*</span></label>
                     <input type="text" id="imei">
                 </div>
                 <div class="field-group">
@@ -251,6 +252,15 @@
                         <option value="1">Option 1: Maintenance Mode Enabled</option>
                         <option value="2">Option 2: Collected back post registration</option>
                         <option value="3">Option 3: Dead / Blank Display Screen</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label>Device submitted by <span class="required">*</span></label>
+                    <select id="submittedBy">
+                        <option value="">-- Select CCO --</option>
+                        <option value="Stuti">Stuti</option>
+                        <option value="Ashutosh">Ashutosh</option>
+                        <option value="Virendra">Virendra</option>
                     </select>
                 </div>
                 <div class="field-group">
@@ -292,6 +302,7 @@
                     <option value="name">Customer Name</option>
                     <option value="jobsheet">Jobsheet No.</option>
 		    <option value="model">Device Model</option>
+                    <option value="submittedBy">Device Submitted By (CCO)</option>
                 </select>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="searchQuery" placeholder="Enter search term..." style="width: 100%;" onkeyup="if(event.key === 'Enter') performSearch()">
@@ -317,7 +328,7 @@
     <table id="logTable">
         <thead>
             <tr>
-                <th>#</th><th>Name</th><th>Model</th><th>IMEI/Serial</th><th>Contact</th><th>Date</th><th>Time</th><th>Jobsheet</th>
+                <th>#</th><th>Name</th><th>Model</th><th>IMEI/Serial</th><th>Contact</th><th>Submitted By</th><th>Date</th><th>Time</th><th>Jobsheet</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -477,9 +488,10 @@
             row.insertCell(2).innerText = log.model || '';
             row.insertCell(3).innerText = log.imei || '';
             row.insertCell(4).innerText = log.contact || '';
-            row.insertCell(5).innerText = log.date || '';
-            row.insertCell(6).innerText = log.time || '';
-            row.insertCell(7).innerText = log.jobsheet || '';
+            row.insertCell(5).innerText = log.submittedBy || '';
+            row.insertCell(6).innerText = log.date || '';
+            row.insertCell(7).innerText = log.time || '';
+            row.insertCell(8).innerText = log.jobsheet || '';
         });
 
         document.getElementById('pageInfo').innerText = `Showing page ${currentPage} of ${totalPages} (${currentFilteredLogs.length} total records)`;
@@ -520,6 +532,7 @@
                                 <th>Model</th>
                                 <th>IMEI / Serial</th>
                                 <th>Contact</th>
+                                <th>CCO (Submitted By)</th>
                                 <th>Jobsheet</th>
                                 <th>Symptom</th>
                             </tr>
@@ -536,6 +549,7 @@
                         <td>${log.model || ''}</td>
                         <td>${log.imei || ''}</td>
                         <td>${log.contact || ''}</td>
+                        <td>${log.submittedBy || ''}</td>
                         <td>${log.jobsheet || ''}</td>
                         <td>${log.symptom || ''}</td>
                     </tr>
@@ -586,7 +600,7 @@
             card.innerHTML = `
                 <strong>${log.name || 'Unknown'} | ${log.model || 'Unknown Model'}</strong>
                 <span>JS: ${log.jobsheet || 'N/A'} | IMEI: ${log.imei || 'N/A'}</span>
-                <span>Contact: ${log.contact || 'N/A'}</span>
+                <span>Contact: ${log.contact || 'N/A'} | CCO: ${log.submittedBy || 'N/A'}</span>
                 <span>Date: ${log.date || ''} ${log.time || ''}</span>
             `;
             resultsContainer.appendChild(card);
@@ -607,6 +621,7 @@
         document.getElementById('contact').value = record.contact || '';
         document.getElementById('condition').value = record.condition || '';
         document.getElementById('handoverCondition').value = record.handoverCondition || '1';
+        document.getElementById('submittedBy').value = record.submittedBy || '';
         document.getElementById('jobsheetNo').value = record.jobsheet || '';
         document.getElementById('advancePaid').value = record.advance || '';
 
@@ -622,7 +637,7 @@
 
     function setFormLockState(locked) {
         isFormLocked = locked;
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid'];
         
         editableIds.forEach(id => {
             const input = document.getElementById(id);
@@ -647,7 +662,7 @@
     }
 
     function setupEditProtectionListeners() {
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid'];
         editableIds.forEach(id => {
             const input = document.getElementById(id);
             input.addEventListener('click', () => {
@@ -683,9 +698,15 @@
     async function saveData() {
         const name = document.getElementById('custName').value.trim();
         const imei = document.getElementById('imei').value.trim();
+        const submittedBy = document.getElementById('submittedBy').value;
 
         if (!name || !imei) {
             alert("Please enter Customer Name and IMEI / Serial Number.");
+            return false;
+        }
+
+        if (!submittedBy) {
+            alert("Please select CCO in 'Device submitted by' field.");
             return false;
         }
 
@@ -707,6 +728,7 @@
         const recordData = { 
             name, address, model, email, imei, 
             symptom, contact, condition, handoverCondition,
+            submittedBy,
             date: entryDate, time: entryTime, jobsheet, advance,
             timestamp: recordTimestamp
         };
@@ -737,6 +759,7 @@
         const symptom = document.getElementById('symptom').value;
         const condition = document.getElementById('condition').value;
         const handoverCondition = document.getElementById('handoverCondition').value;
+        const submittedBy = document.getElementById('submittedBy').value;
         const entryDate = document.getElementById('entryDate').value;
         const entryTime = document.getElementById('entryTime').value;
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
@@ -756,6 +779,7 @@
                             <tr><td class="label">Customer Name:</td><td>${name}</td></tr>
                             <tr><td class="label">Device Model:</td><td>${model}</td></tr>
                             <tr><td class="label">Device IMEI/Serial Number/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
+                            <tr><td class="label">Device Submitted By (CCO):</td><td>${submittedBy}</td></tr>
                             <tr><td class="label">Date/Time of Submission:</td><td>${entryDate} ${entryTime}</td></tr>
                         </table>
                         <div class="maint-section-title">MAINTENANCE MODE FEATURE EXPLANATION</div>
@@ -797,7 +821,7 @@
                         </div>
                     </div>
                     <div class="maint-footer-grid">
-                        <div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
                             <p style="margin:3px 0;"><strong>Customer Name:</strong> ${name}</p>
                             <p style="margin:3px 0;"><strong>Date:</strong> ${entryDate}</p>
                             <p style="margin:3px 0;"><strong>Customer Contact No:</strong> ${contact}</p>
@@ -805,7 +829,8 @@
                         </div>
                         <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
                             <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
-                            <div class="maint-footer-box" style="text-align: left;">Service Center Stamp/Seal/Sign</div>
+                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy})</div>
+                            <div class="maint-footer-box" style="text-align: left; margin-top: 0;">Service Center Stamp/Seal/Sign</div>
                         </div>
                     </div>
                 </div>
@@ -833,7 +858,7 @@
                             <tr><td class="label">SERIAL NO:</td><td></td><td class="label">EMAIL:</td><td>${email}</td></tr>
                             <tr><td class="label">SYMPTOM / ISSUE:</td><td>${symptom}</td><td class="label">CUSTOMER SIGN:</td><td></td></tr>
                             <tr><td class="label">PHYSICAL CONDITION:</td><td>${condition}</td><td class="label">ADVANCE PAID:</td><td>${advance}</td></tr>
-                            <tr><td class="label">JOBSHEET NO:</td><td>${jobsheet}</td><td class="label">CCO SIGN:</td><td></td></tr>
+                            <tr><td class="label">JOBSHEET NO:</td><td>${jobsheet}</td><td class="label">CCO SIGN:</td><td>${submittedBy}</td></tr>
                         </table>
                     </div>
                 </div>
@@ -850,6 +875,7 @@
                             <tr><td class="label">ग्राहक का नाम:</td><td>${hindiName} (${name})</td></tr>
                             <tr><td class="label">डिवाइस मॉडल:</td><td>${model}</td></tr>
                             <tr><td class="label">डिवाइस IMEI/सीरियल नंबर/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
+                            <tr><td class="label">डिवाइस जमाकर्ता (CCO):</td><td>${submittedBy}</td></tr>
                             <tr><td class="label">जमा करने की दिनांक/समय:</td><td>${entryDate} ${entryTime}</td></tr>
                         </table>
                         <div class="maint-section-title">मेंटेनेंस मोड फीचर की जानकारी</div>
@@ -891,7 +917,7 @@
                         </div>
                     </div>
                     <div class="maint-footer-grid">
-                        <div>
+                        <div style="display: flex; flex-direction: column; justify-content: flex-end;">
                             <p style="margin:3px 0;"><strong>ग्राहक का नाम:</strong> ${hindiName}</p>
                             <p style="margin:3px 0;"><strong>दिनांक:</strong> ${entryDate}</p>
                             <p style="margin:3px 0;"><strong>ग्राहक संपर्क नंबर:</strong> ${contact}</p>
@@ -899,7 +925,8 @@
                         </div>
                         <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
                             <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
-                            <div class="maint-footer-box" style="text-align: left;">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
+                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy})</div>
+                            <div class="maint-footer-box" style="text-align: left; margin-top: 0;">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
                         </div>
                     </div>
                 </div>
@@ -927,8 +954,8 @@
 
         const headers = [
             "S.No", "Date", "Time", "Customer Name", "Contact No", "Address", 
-            "Email ID", "Device Model", "IMEI / Serial / SO No", "Jobsheet No", 
-            "Symptom / Issue", "Physical Condition", "Handover Option", "Advance Paid"
+            "Email ID", "Device Model", "IMEI / Serial / SO No", "Device Submitted By (CCO)", 
+            "Jobsheet No", "Symptom / Issue", "Physical Condition", "Handover Option", "Advance Paid"
         ];
 
         let csvContent = "\uFEFF" + headers.map(h => `"${h}"`).join(",") + "\n";
@@ -944,6 +971,7 @@
                 log.email || '',
                 log.model || '',
                 log.imei || '',
+                log.submittedBy || '',
                 log.jobsheet || '',
                 log.symptom || '',
                 log.condition || '',
@@ -1036,6 +1064,7 @@
             const idxEmail = findIndex(['email']);
             const idxModel = findIndex(['model']);
             const idxImei = findIndex(['imei', 'serial']);
+            const idxSubmittedBy = findIndex(['submittedby', 'cco', 'submitted']);
             const idxJobsheet = findIndex(['jobsheet']);
             const idxSymptom = findIndex(['symptom', 'issue']);
             const idxCondition = findIndex(['condition']);
@@ -1061,6 +1090,7 @@
                     email: idxEmail !== -1 ? cols[idxEmail] || '' : '',
                     model: idxModel !== -1 ? cols[idxModel] || '' : '',
                     imei: imei,
+                    submittedBy: idxSubmittedBy !== -1 ? cols[idxSubmittedBy] || '' : '',
                     jobsheet: idxJobsheet !== -1 ? cols[idxJobsheet] || '' : '',
                     symptom: idxSymptom !== -1 ? cols[idxSymptom] || '' : '',
                     condition: idxCondition !== -1 ? cols[idxCondition] || '' : '',
@@ -1096,6 +1126,7 @@
             if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
         });
         document.getElementById('handoverCondition').value = '1';
+        document.getElementById('submittedBy').value = '';
         updateDateTime(); 
         document.getElementById('searchQuery').value = '';
         document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
