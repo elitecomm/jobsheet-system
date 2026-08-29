@@ -11,6 +11,8 @@
         
         .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; margin-bottom: 20px; }
         .header-bar h2 { margin: 0; color: #1a73e8; border: none; padding: 0; }
+        .header-right-tools { display: flex; align-items: center; gap: 10px; }
+        .token-header-input { width: 110px; padding: 5px 8px; font-size: 12px; border: 1px solid #dadce0; border-radius: 4px; }
 
         .main-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
@@ -208,7 +210,10 @@
 <div class="container" id="appContainer">
     <div class="header-bar">
         <h2>Device Entry Form</h2>
-        <button class="logout-btn" onclick="handleLogout()">🔒 Logout</button>
+        <div class="header-right-tools">
+            <input type="text" id="tokenNo" class="token-header-input" placeholder="Token No.">
+            <button class="logout-btn" onclick="handleLogout()">🔒 Logout</button>
+        </div>
     </div>
     
     <div class="main-layout">
@@ -247,8 +252,9 @@
                     <input type="text" id="condition">
                 </div>
                 <div class="field-group">
-                    <label>Handover Condition</label>
+                    <label>Handover Condition <span class="required">*</span></label>
                     <select id="handoverCondition">
+                        <option value="">-- Select Handover Condition --</option>
                         <option value="1">Option 1: Maintenance Mode Enabled</option>
                         <option value="2">Option 2: Collected back post registration</option>
                         <option value="3">Option 3: Dead / Blank Display Screen</option>
@@ -301,7 +307,7 @@
                     <option value="imei">IMEI / Serial No.</option>
                     <option value="name">Customer Name</option>
                     <option value="jobsheet">Jobsheet No.</option>
-		    <option value="model">Device Model</option>
+                    <option value="model">Device Model</option>
                     <option value="submittedBy">Device Submitted By (CCO)</option>
                 </select>
                 <div style="display: flex; gap: 5px;">
@@ -620,10 +626,11 @@
         document.getElementById('symptom').value = record.symptom || '';
         document.getElementById('contact').value = record.contact || '';
         document.getElementById('condition').value = record.condition || '';
-        document.getElementById('handoverCondition').value = record.handoverCondition || '1';
+        document.getElementById('handoverCondition').value = record.handoverCondition || '';
         document.getElementById('submittedBy').value = record.submittedBy || '';
         document.getElementById('jobsheetNo').value = record.jobsheet || '';
         document.getElementById('advancePaid').value = record.advance || '';
+        document.getElementById('tokenNo').value = record.tokenNo || '';
 
         document.getElementById('entryDate').value = record.date || '';
         document.getElementById('entryTime').value = record.time || '';
@@ -637,7 +644,7 @@
 
     function setFormLockState(locked) {
         isFormLocked = locked;
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid', 'tokenNo'];
         
         editableIds.forEach(id => {
             const input = document.getElementById(id);
@@ -662,7 +669,7 @@
     }
 
     function setupEditProtectionListeners() {
-        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid'];
+        const editableIds = ['custName', 'address', 'model', 'email', 'imei', 'symptom', 'contact', 'condition', 'handoverCondition', 'submittedBy', 'jobsheetNo', 'advancePaid', 'tokenNo'];
         editableIds.forEach(id => {
             const input = document.getElementById(id);
             input.addEventListener('click', () => {
@@ -698,6 +705,7 @@
     async function saveData() {
         const name = document.getElementById('custName').value.trim();
         const imei = document.getElementById('imei').value.trim();
+        const handoverCondition = document.getElementById('handoverCondition').value;
         const submittedBy = document.getElementById('submittedBy').value;
 
         if (!name || !imei) {
@@ -705,9 +713,17 @@
             return false;
         }
 
-        if (!submittedBy) {
-            alert("Please select CCO in 'Device submitted by' field.");
-            return false;
+        // Mandatory validation enforced ONLY for NEW submissions
+        if (!isExistingRecord) {
+            if (!handoverCondition) {
+                alert("Please select Handover Condition.");
+                return false;
+            }
+
+            if (!submittedBy) {
+                alert("Please select CCO in 'Device submitted by' field.");
+                return false;
+            }
         }
 
         const model = document.getElementById('model').value;
@@ -716,11 +732,11 @@
         const email = document.getElementById('email').value;
         const symptom = document.getElementById('symptom').value;
         const condition = document.getElementById('condition').value;
-        const handoverCondition = document.getElementById('handoverCondition').value;
         const entryDate = document.getElementById('entryDate').value;
         const entryTime = document.getElementById('entryTime').value;
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
         const advance = document.getElementById('advancePaid').value;
+        const tokenNo = document.getElementById('tokenNo').value.trim();
 
         const existingRecord = globalLogs.find(log => log.imei === imei);
         const recordTimestamp = isExistingRecord && existingRecord ? (existingRecord.timestamp || Date.now()) : Date.now();
@@ -728,7 +744,7 @@
         const recordData = { 
             name, address, model, email, imei, 
             symptom, contact, condition, handoverCondition,
-            submittedBy,
+            submittedBy, tokenNo,
             date: entryDate, time: entryTime, jobsheet, advance,
             timestamp: recordTimestamp
         };
@@ -764,6 +780,7 @@
         const entryTime = document.getElementById('entryTime').value;
         const jobsheet = document.getElementById('jobsheetNo').value.trim();
         const advance = document.getElementById('advancePaid').value;
+        const tokenNo = document.getElementById('tokenNo').value.trim();
 
         const imeiJobsheetDisplay = jobsheet ? `${imei} / ${jobsheet}` : imei;
         const printArea = document.getElementById('printableArea');
@@ -779,7 +796,7 @@
                             <tr><td class="label">Customer Name:</td><td>${name}</td></tr>
                             <tr><td class="label">Device Model:</td><td>${model}</td></tr>
                             <tr><td class="label">Device IMEI/Serial Number/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
-                            <tr><td class="label">Device Submitted By (CCO):</td><td>${submittedBy}</td></tr>
+                            <tr><td class="label">Device Submitted By (CCO):</td><td>${submittedBy || 'N/A'}</td></tr>
                             <tr><td class="label">Date/Time of Submission:</td><td>${entryDate} ${entryTime}</td></tr>
                         </table>
                         <div class="maint-section-title">MAINTENANCE MODE FEATURE EXPLANATION</div>
@@ -829,7 +846,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
                             <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
-                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy})</div>
+                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy || 'N/A'})</div>
                             <div class="maint-footer-box" style="text-align: left; margin-top: 0;">Service Center Stamp/Seal/Sign</div>
                         </div>
                     </div>
@@ -846,7 +863,7 @@
 		    </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #000; padding-bottom:6px; margin-bottom:12px;">
                             <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/250px-Samsung_logo.png" class="print-logo" alt="Samsung Logo">
-                            <span style="font-size:13px; font-weight:bold; text-align:right;">CONTACT US: 9569894030<br>TOKEN NO. _____</span>
+                            <span style="font-size:13px; font-weight:bold; text-align:right;">CONTACT US: 9569894030<br>TOKEN NO. ${tokenNo || '_____'}</span>
                         </div>
                         <div style="text-align:center; font-weight:bold; font-size:16px; margin-bottom:14px; letter-spacing:0.5px;">CUSTOMER INFORMATION SLIP</div>
                         <table class="cis-table">
@@ -858,7 +875,7 @@
                             <tr><td class="label">SERIAL NO:</td><td></td><td class="label">EMAIL:</td><td>${email}</td></tr>
                             <tr><td class="label">SYMPTOM / ISSUE:</td><td>${symptom}</td><td class="label">CUSTOMER SIGN:</td><td></td></tr>
                             <tr><td class="label">PHYSICAL CONDITION:</td><td>${condition}</td><td class="label">ADVANCE PAID:</td><td>${advance}</td></tr>
-                            <tr><td class="label">JOBSHEET NO:</td><td>${jobsheet}</td><td class="label">CCO SIGN:</td><td>${submittedBy}</td></tr>
+                            <tr><td class="label">JOBSHEET NO:</td><td>${jobsheet}</td><td class="label">CCO SIGN:</td><td>${submittedBy || ''}</td></tr>
                         </table>
                     </div>
                 </div>
@@ -875,7 +892,7 @@
                             <tr><td class="label">ग्राहक का नाम:</td><td>${hindiName} (${name})</td></tr>
                             <tr><td class="label">डिवाइस मॉडल:</td><td>${model}</td></tr>
                             <tr><td class="label">डिवाइस IMEI/सीरियल नंबर/SO No:</td><td>${imeiJobsheetDisplay}</td></tr>
-                            <tr><td class="label">डिवाइस जमाकर्ता (CCO):</td><td>${submittedBy}</td></tr>
+                            <tr><td class="label">डिवाइस जमाकर्ता (CCO):</td><td>${submittedBy || 'N/A'}</td></tr>
                             <tr><td class="label">जमा करने की दिनांक/समय:</td><td>${entryDate} ${entryTime}</td></tr>
                         </table>
                         <div class="maint-section-title">मेंटेनेंस मोड फीचर की जानकारी</div>
@@ -925,7 +942,7 @@
                         </div>
                         <div style="display: flex; flex-direction: column; justify-content: flex-end; text-align: center;">
                             <img src="https://raw.githubusercontent.com/elitecomm/app/main/assets/images/stamp.jpg" class="print-stamp" alt="Service Center Stamp">
-                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy})</div>
+                            <div style="font-size: 11px; text-align: center; margin-bottom: 2px;">(${submittedBy || 'N/A'})</div>
                             <div class="maint-footer-box" style="text-align: left; margin-top: 0;">सर्विस सेंटर की मुहर/सील/हस्ताक्षर</div>
                         </div>
                     </div>
@@ -953,7 +970,7 @@
         }
 
         const headers = [
-            "S.No", "Date", "Time", "Customer Name", "Contact No", "Address", 
+            "S.No", "Date", "Time", "Token No", "Customer Name", "Contact No", "Address", 
             "Email ID", "Device Model", "IMEI / Serial / SO No", "Device Submitted By (CCO)", 
             "Jobsheet No", "Symptom / Issue", "Physical Condition", "Handover Option", "Advance Paid"
         ];
@@ -965,6 +982,7 @@
                 index + 1,
                 log.date || '',
                 log.time || '',
+                log.tokenNo || '',
                 log.name || '',
                 log.contact || '',
                 log.address || '',
@@ -975,7 +993,7 @@
                 log.jobsheet || '',
                 log.symptom || '',
                 log.condition || '',
-                log.handoverCondition || '1',
+                log.handoverCondition || '',
                 log.advance || '0'
             ];
             csvContent += row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(",") + "\n";
@@ -1058,6 +1076,7 @@
             
             const idxDate = findIndex(['date']);
             const idxTime = findIndex(['time']);
+            const idxToken = findIndex(['token']);
             const idxName = findIndex(['customer', 'name']);
             const idxContact = findIndex(['contact', 'phone', 'mobile']);
             const idxAddress = findIndex(['address']);
@@ -1084,6 +1103,7 @@
                 const record = {
                     date: idxDate !== -1 ? cols[idxDate] || '' : '',
                     time: idxTime !== -1 ? cols[idxTime] || '' : '',
+                    tokenNo: idxToken !== -1 ? cols[idxToken] || '' : '',
                     name: idxName !== -1 ? cols[idxName] || '' : '',
                     contact: idxContact !== -1 ? cols[idxContact] || '' : '',
                     address: idxAddress !== -1 ? cols[idxAddress] || '' : '',
@@ -1094,7 +1114,7 @@
                     jobsheet: idxJobsheet !== -1 ? cols[idxJobsheet] || '' : '',
                     symptom: idxSymptom !== -1 ? cols[idxSymptom] || '' : '',
                     condition: idxCondition !== -1 ? cols[idxCondition] || '' : '',
-                    handoverCondition: idxHandover !== -1 ? cols[idxHandover] || '1' : '1',
+                    handoverCondition: idxHandover !== -1 ? cols[idxHandover] || '' : '',
                     advance: idxAdvance !== -1 ? cols[idxAdvance] || '0' : '0',
                     timestamp: Date.now() - i
                 };
@@ -1125,7 +1145,8 @@
         document.querySelectorAll('.form-grid input').forEach(input => {
             if (input.id !== 'entryDate' && input.id !== 'entryTime') input.value = '';
         });
-        document.getElementById('handoverCondition').value = '1';
+        document.getElementById('tokenNo').value = '';
+        document.getElementById('handoverCondition').value = '';
         document.getElementById('submittedBy').value = '';
         updateDateTime(); 
         document.getElementById('searchQuery').value = '';
