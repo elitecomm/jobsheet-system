@@ -197,6 +197,7 @@
     <!-- Firebase SDKs (Compat Version) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -205,7 +206,7 @@
     <div class="auth-card">
         <h3>Service Center Login</h3>
         <p style="font-size: 13px; color: #5f6368; margin-bottom: 15px;">Enter credentials to access the system</p>
-        <input type="text" id="authUsername" placeholder="Username (e.g. admin)">
+        <input type="text" id="authUsername" placeholder="Username">
         <input type="password" id="authPassword" placeholder="Password" onkeyup="if(event.key==='Enter') handleLogin()">
         <button onclick="handleLogin()">Sign In</button>
     </div>
@@ -368,37 +369,39 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
 
     // Application Version Control to force update on live sessions
     const CURRENT_APP_VERSION = "1.0.1";
 
     // Check version ONCE when page loads to prevent endless alert loops
-db.ref('appSettings/systemVersion').once('value').then((snapshot) => {
-    if (snapshot.exists()) {
-        const latestVersion = snapshot.val().toString().trim();
-        if (latestVersion !== CURRENT_APP_VERSION) {
-            if (confirm("A new update for the application is available! Click OK to apply updates.")) {
-                window.location.reload(true);
-            }
-        }
-    }
-});
-
-    let REQUIRED_PASSWORD = "178239"; 
-    let CSV_IMPORT_PASSWORD = "999999"; 
-    const REQUIRED_USERNAME = "admin";
-
-    db.ref('appSettings/systemPassword').on('value', (snapshot) => {
+    db.ref('appSettings/systemVersion').once('value').then((snapshot) => {
         if (snapshot.exists()) {
-            REQUIRED_PASSWORD = snapshot.val().toString();
+            const latestVersion = snapshot.val().toString().trim();
+            if (latestVersion !== CURRENT_APP_VERSION) {
+                if (confirm("A new update for the application is available! Click OK to apply updates.")) {
+                    window.location.reload(true);
+                }
+            }
         }
     });
 
-    db.ref('appSettings/csvPassword').on('value', (snapshot) => {
+    let REQUIRED_PASSWORD = ""; 
+    let CSV_IMPORT_PASSWORD = ""; 
+    let REQUIRED_USERNAME = "";
+
+    // Fetch credentials from Firebase automatically on load
+    db.ref('appSettings').once('value').then((snapshot) => {
         if (snapshot.exists()) {
-            CSV_IMPORT_PASSWORD = snapshot.val().toString();
+            const settings = snapshot.val();
+            REQUIRED_PASSWORD = String(settings.systemPassword || '');
+            CSV_IMPORT_PASSWORD = String(settings.csvPassword || '');
+            REQUIRED_USERNAME = String(settings.adminUsername || '');
         }
-    });	
+    });
+
+    // Sync credentials dynamically from Firebase database
+  
 
     let globalLogs = [];
     let currentFilteredLogs = [];
@@ -408,8 +411,9 @@ db.ref('appSettings/systemVersion').once('value').then((snapshot) => {
     let isFormLocked = false;
     let isExistingRecord = false; 
 
-    window.onload = function() {
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+    // Firebase state listener replacing insecure sessionStorage
+    auth.onAuthStateChanged((user) => {
+        if (user) {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
             listenToDatabase();
@@ -417,27 +421,56 @@ db.ref('appSettings/systemVersion').once('value').then((snapshot) => {
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('appContainer').style.display = 'none';
         }
+    });
+
+    window.onload = function() {
         setupEditProtectionListeners();
     };
 
-    function handleLogin() {
-        const username = document.getElementById('authUsername').value.trim();
-        const password = document.getElementById('authPassword').value;
+    async function handleLogin() {
+    // 1. Read input values using the exact IDs from your HTML
+    const usernameInput = document.getElementById('authUsername').value.trim();
+    const passwordInput = document.getElementById('authPassword').value.trim();
 
-        if (username === REQUIRED_USERNAME && password === REQUIRED_PASSWORD) {
-            sessionStorage.setItem('isLoggedIn', 'true');
+    if (!usernameInput || !passwordInput) {
+        alert("Please enter both Username and Password.");
+        return;
+    }
+
+    try {
+        // 2. Query Firebase Database directly at the moment of login
+        const snapshot = await db.ref('appSettings').once('value');
+        const settings = snapshot.val();
+
+        if (!settings) {
+            alert("Error: Unable to fetch system settings from database.");
+            return;
+        }
+
+        // 3. Compare user input against appSettings in database
+        const dbUsername = String(settings.adminUsername || '').trim();
+        const dbPassword = String(settings.systemPassword || '').trim();
+
+        if (usernameInput === dbUsername && passwordInput === dbPassword) {
+            // 4. Authenticate using Firebase Anonymous Auth (No email/password provider required)
+            await auth.signInAnonymously();
+            
+            // Hide login overlay and show app
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            listenToDatabase();
         } else {
             alert("Invalid Credentials! Username or Password incorrect.");
         }
+    } catch (error) {
+        alert("Authentication Error: " + error.message);
     }
+}
 
     function handleLogout() {
-        sessionStorage.removeItem('isLoggedIn');
-        document.getElementById('loginOverlay').style.display = 'flex';
-        document.getElementById('appContainer').style.display = 'none';
+        auth.signOut().then(() => {
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+        });
     }
 
     function updateDateTime() {
