@@ -871,13 +871,17 @@
                         <div><strong>User Signature / Electronic Confirmation:</strong> ______________________________</div>
                         <div><strong>Customer No Contact:</strong> ______________________________</div>
                         <!-- AFTER -->
+<!-- Replace the existing Stamp block with this: -->
 <div style="margin-top: 5px;">
     <div style="font-size: 12px; font-weight: bold; display: flex; align-items: flex-start;">
         <span>Service Center Stamp/Seal/Sign: [&nbsp;</span>
         <div style="display: inline-block; text-align: center; width: 220px; position: relative;">
-            <img src="https://github.com/elitecomm/jobsheet-system/blob/main/assets/images/stamp.jpg?raw=true" class="print-stamp" alt="Service Center Stamp" style="position: absolute; top: -40px; left: 50%; transform: translateX(-50%); opacity: 0.85;">
-            <div style="border-bottom: 1px solid #000; width: 100%; margin-top: 45px;"></div>
-            <div style="font-size: 7px; font-weight: normal; margin-top: 2px; color: #000;">${submittedBy || ''}</div>
+            <!-- Added Stamp Image -->
+            <img src="https://raw.githubusercontent.com/elitecomm/jobsheet-system/main/assets/images/stamp.jpg" 
+                 style="position: absolute; top: 40px; left: 50%; transform: translateX(-50%); height: 50px; opacity: 0.85; pointer-events: none;" 
+                 alt="Stamp" />
+            <div style="border-bottom: 1px solid #000; width: 100%; margin-top: 25px;"></div>
+            <div style="font-size: 7px; font-weight: normal; margin-top: 4px; color: #000;">${submittedBy || ''}</div>
         </div>
         <span>&nbsp;]</span>
     </div>
