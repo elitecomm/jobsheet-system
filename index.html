@@ -61,6 +61,201 @@
         .pagination-buttons button { padding: 6px 12px; font-size: 12px; }
         .pagination-buttons button:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; }
 
+        /* Customer digital signature — Android-friendly capture panel */
+        .signature-record {
+            margin: 0 0 22px;
+            padding: 14px;
+            display: grid;
+            grid-template-columns: minmax(150px, 220px) 1fr auto;
+            gap: 14px;
+            align-items: center;
+            background: #f8fbff;
+            border: 1px solid #c8daf6;
+            border-left: 4px solid #1a73e8;
+            border-radius: 7px;
+        }
+        .signature-record-title { font-size: 14px; font-weight: 700; color: #1a73e8; margin-bottom: 3px; }
+        .signature-record-note { font-size: 12px; line-height: 1.35; color: #5f6368; }
+        .signature-preview-box {
+            height: 76px;
+            min-width: 170px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px dashed #9db7d9;
+            border-radius: 5px;
+            background-color: #fff;
+            background-image: linear-gradient(#f1f5fa 1px, transparent 1px), linear-gradient(90deg, #f1f5fa 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        .signature-preview-box img { display: block; max-width: 94%; max-height: 64px; object-fit: contain; }
+        .signature-preview-empty { padding: 8px; text-align: center; color: #7a8795; font-size: 12px; line-height: 1.3; }
+        .signature-record-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .signature-record-actions button { padding: 8px 12px; font-size: 12px; }
+        .signature-record-actions .signature-capture-btn { background: #1a73e8; }
+        .signature-record-actions .signature-download-btn { background: #0f9d58; }
+        .signature-record-actions .signature-remove-btn { background: #d93025; }
+        .signature-record-actions .signature-mobile-btn { background: #6741b9; }
+        .signature-record-actions button:disabled { background: #b8c0c8; cursor: not-allowed; opacity: .7; }
+
+        /* Temporary wireless pairing screen used with the Elite Signature Capture APK. */
+        .mobile-pair-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(18, 34, 52, .6);
+        }
+        .mobile-pair-modal.is-open { display: flex; }
+        .mobile-pair-card {
+            width: min(570px, 100%);
+            overflow: hidden;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 56px rgba(0, 0, 0, .30);
+        }
+        .mobile-pair-header { padding: 17px 19px; color: #fff; background: #6741b9; }
+        .mobile-pair-header strong { display: block; font-size: 18px; }
+        .mobile-pair-header span { display: block; margin-top: 3px; font-size: 12px; opacity: .92; }
+        .mobile-pair-content { padding: 19px; }
+        .mobile-pair-content > p { margin: 0 0 13px; color: #425466; font-size: 14px; line-height: 1.45; }
+        .mobile-code-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 64px;
+            padding: 10px 14px;
+            color: #3f247b;
+            background: #f4efff;
+            border: 1px dashed #8c6bca;
+            border-radius: 7px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: clamp(22px, 7vw, 32px);
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-align: center;
+            user-select: all;
+        }
+        .mobile-pair-steps { margin: 17px 0; padding: 0; list-style: none; counter-reset: pairing-step; }
+        .mobile-pair-steps li { position: relative; min-height: 30px; padding: 5px 0 5px 37px; color: #4b5563; font-size: 13px; line-height: 1.35; counter-increment: pairing-step; }
+        .mobile-pair-steps li::before { position: absolute; left: 0; top: 4px; width: 25px; height: 25px; display: grid; place-items: center; color: #fff; background: #6741b9; border-radius: 50%; content: counter(pairing-step); font-size: 12px; font-weight: 700; }
+        .mobile-pair-status { display: block; min-height: 20px; padding: 9px 10px; color: #43515f; background: #f4f7fa; border-radius: 5px; font-size: 12px; line-height: 1.35; }
+        .mobile-pair-status.success { color: #0f6b3a; background: #e6f4ea; }
+        .mobile-pair-status.error { color: #b3261e; background: #fce8e6; }
+        .mobile-pair-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 17px; flex-wrap: wrap; }
+        .mobile-pair-actions .mobile-copy-btn { color: #4a2a91; background: #f0eaff; }
+        .mobile-pair-actions .mobile-cancel-btn { color: #455a64; background: #edf1f4; }
+        .mobile-pair-actions .mobile-done-btn { display: none; background: #0f9d58; }
+        .mobile-pair-modal.is-complete .mobile-done-btn { display: inline-block; }
+        .mobile-pair-modal.is-complete .mobile-cancel-btn { display: none; }
+
+        /* Full-screen signer designed for touch screens, Android browsers, and WebViews. */
+        .signature-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            background: rgba(18, 34, 52, .6);
+        }
+        .signature-modal.is-open { display: flex; }
+        body.signature-modal-open { overflow: hidden; }
+        .signature-app-card {
+            width: min(760px, 100%);
+            max-height: calc(100vh - 36px);
+            overflow: auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 20px 56px rgba(0, 0, 0, .30);
+        }
+        .signature-app-toolbar {
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            background: #1976d2;
+            border-radius: 12px 12px 0 0;
+        }
+        .signature-app-toolbar-title { display: flex; flex-direction: column; gap: 2px; }
+        .signature-app-toolbar-title strong { font-size: 18px; }
+        .signature-app-toolbar-title span { font-size: 12px; opacity: .9; }
+        .signature-close-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 25px;
+            line-height: 1;
+            color: #fff;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,.72);
+            border-radius: 50%;
+        }
+        .signature-app-content { padding: 18px; }
+        .signature-app-instruction { margin: 0 0 12px; color: #425466; font-size: 14px; line-height: 1.45; }
+        .signature-customer-name {
+            display: inline-block;
+            margin-bottom: 14px;
+            padding: 6px 9px;
+            color: #1558a1;
+            background: #eaf3ff;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .signature-canvas-shell {
+            position: relative;
+            height: 280px;
+            overflow: hidden;
+            border: 2px solid #8db6e5;
+            border-radius: 7px;
+            background-color: #fff;
+            background-image: linear-gradient(to bottom, transparent calc(100% - 46px), #b8cbe2 calc(100% - 46px), #b8cbe2 calc(100% - 45px), transparent calc(100% - 45px));
+        }
+        #customerSignatureCanvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+        .signature-canvas-caption { position: absolute; left: 14px; bottom: 11px; color: #7890aa; font-size: 12px; pointer-events: none; }
+        .signature-app-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .signature-pad-status { color: #64748b; font-size: 12px; }
+        .signature-pad-actions { display: flex; gap: 9px; flex-wrap: wrap; justify-content: flex-end; }
+        .signature-pad-actions button { min-width: 94px; }
+        .signature-pad-actions .signature-clear-pad { color: #b3261e; background: #fff; border: 1px solid #e27c76; }
+        .signature-pad-actions .signature-cancel-pad { color: #455a64; background: #edf1f4; }
+        .signature-pad-actions .signature-save-pad { background: #0f9d58; }
+
+        @media (max-width: 720px) {
+            .signature-record { grid-template-columns: 1fr; }
+            .signature-record-actions { justify-content: flex-start; }
+            .signature-preview-box { min-height: 82px; }
+            .signature-modal { padding: 0; }
+            .signature-app-card { width: 100%; min-height: 100%; max-height: 100vh; border-radius: 0; }
+            .signature-app-toolbar { border-radius: 0; }
+            .signature-app-content { padding: 16px; }
+            .signature-canvas-shell { height: min(52vh, 330px); }
+            .signature-app-footer { align-items: stretch; }
+            .signature-pad-actions { width: 100%; }
+            .signature-pad-actions button { flex: 1; min-width: 0; }
+            .mobile-pair-modal { padding: 0; }
+            .mobile-pair-card { width: 100%; min-height: 100%; border-radius: 0; }
+            .mobile-pair-header { padding-top: max(17px, env(safe-area-inset-top)); }
+            .mobile-pair-content { padding: 18px 16px; }
+            .mobile-pair-actions button { flex: 1; }
+        }
+
         /* Login Overlay Styles */
         .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f6f9; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); width: 100%; max-width: 380px; text-align: center; }
@@ -356,6 +551,24 @@
                 <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
                 <button class="clear-btn" onclick="clearForm()">Clear Form</button>
             </div>
+
+            <!-- This is separate from the existing entry fields: it is the mobile-friendly customer signer. -->
+            <section class="signature-record" aria-label="Customer digital signature">
+                <div>
+                    <div class="signature-record-title">Customer Digital Signature</div>
+                    <div class="signature-record-note" id="signatureRecordStatus">No signature captured. Ask the customer to sign on the Android-friendly signature pad.</div>
+                </div>
+                <div class="signature-preview-box" aria-label="Customer signature preview">
+                    <img id="customerSignaturePreview" alt="Customer signature preview" hidden>
+                    <span class="signature-preview-empty" id="customerSignatureEmpty">The signed image will appear here.</span>
+                </div>
+                <div class="signature-record-actions">
+                    <button type="button" class="signature-capture-btn" id="captureSignatureButton" onclick="openSignatureApp()">✍️ Add Customer Signature</button>
+                    <button type="button" class="signature-mobile-btn" onclick="openMobileSignaturePairing()">📱 Capture on Mobile</button>
+                    <button type="button" class="signature-download-btn" id="downloadSignatureButton" onclick="downloadCustomerSignature()" disabled>⬇ Download PNG</button>
+                    <button type="button" class="signature-remove-btn" id="removeSignatureButton" onclick="removeCustomerSignature()" disabled>Remove</button>
+                </div>
+            </section>
         </div>
 
         <div class="search-sidebar">
@@ -410,6 +623,60 @@
 
 <div id="printableArea" class="print-area"></div>
 
+<!-- Digital Signature app: touch / stylus friendly, including Android WebView. -->
+<div id="signatureModal" class="signature-modal" role="dialog" aria-modal="true" aria-labelledby="signatureModalTitle" aria-hidden="true">
+    <div class="signature-app-card">
+        <div class="signature-app-toolbar">
+            <div class="signature-app-toolbar-title">
+                <strong id="signatureModalTitle">Digital Signature</strong>
+                <span>Customer signature capture</span>
+            </div>
+            <button type="button" class="signature-close-btn" aria-label="Close signature pad" onclick="closeSignatureApp()">×</button>
+        </div>
+        <div class="signature-app-content">
+            <p class="signature-app-instruction">Please sign in the box below using a finger or stylus. Use <strong>Clear</strong> if the signature needs to be redrawn.</p>
+            <div class="signature-customer-name" id="signatureCustomerName">Customer: —</div>
+            <div class="signature-canvas-shell">
+                <canvas id="customerSignatureCanvas" aria-label="Customer signature drawing area"></canvas>
+                <span class="signature-canvas-caption">Sign above this line</span>
+            </div>
+            <div class="signature-app-footer">
+                <span class="signature-pad-status" id="signaturePadStatus">Draw the customer’s signature, then tap Save Signature.</span>
+                <div class="signature-pad-actions">
+                    <button type="button" class="signature-clear-pad" onclick="clearSignaturePad()">Clear</button>
+                    <button type="button" class="signature-cancel-pad" onclick="closeSignatureApp()">Cancel</button>
+                    <button type="button" class="signature-save-pad" onclick="saveCustomerSignature()">Save Signature</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wireless pairing bridge for the companion Android signature application. -->
+<div id="mobileSignaturePairModal" class="mobile-pair-modal" role="dialog" aria-modal="true" aria-labelledby="mobilePairTitle" aria-hidden="true" onclick="if (event.target === this) closeMobileSignaturePairing(true)">
+    <div class="mobile-pair-card">
+        <div class="mobile-pair-header">
+            <strong id="mobilePairTitle">Capture Signature on Mobile</strong>
+            <span>Secure one-time connection to Elite Signature Capture</span>
+        </div>
+        <div class="mobile-pair-content">
+            <p>Open the <strong>Elite Signature Capture</strong> Android app on the customer’s phone and enter this temporary connection code.</p>
+            <div class="mobile-code-box" id="mobileSignatureCode">CONNECTING</div>
+            <ol class="mobile-pair-steps">
+                <li>Open the installed Elite Signature Capture app.</li>
+                <li>Enter the code above and confirm the displayed customer name.</li>
+                <li>Let the customer sign, then tap <strong>Send Signature</strong> on the phone.</li>
+            </ol>
+            <span class="mobile-pair-status" id="mobilePairStatus">Preparing a secure mobile connection…</span>
+            <div class="mobile-pair-actions">
+                <button type="button" class="mobile-copy-btn" onclick="copyMobileSignatureCode()">Copy Code</button>
+                <button type="button" class="mobile-cancel-btn" onclick="closeMobileSignaturePairing(true)">Cancel Pairing</button>
+                <button type="button" class="mobile-done-btn" onclick="closeMobileSignaturePairing(true)">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAB3qoOSyMHPbA25e6_oRahSCo67Kbaud8",
@@ -462,6 +729,426 @@
     let isFormLocked = false;
     let isExistingRecord = false; 
 
+
+    /* Customer signature state. The compact PNG data URL is stored with the current
+       Firebase customer record when the existing Save / Print actions are used. */
+    let customerSignatureData = '';
+    let signatureCanvas = null;
+    let signatureContext = null;
+    let signatureDrawing = false;
+    let signatureHasInk = false;
+    let signatureLastPoint = null;
+    let signatureCanvasToken = 0;
+    const SIGNATURE_BRUSH_SIZE = 2.6;
+
+    /* One-time Firebase bridge between this page and the Android signature app. */
+    let mobileSignatureSessionRef = null;
+    let mobileSignatureSessionCode = '';
+    let mobileSignatureSessionListener = null;
+    let mobileSignatureSessionTimer = null;
+    let mobileSignatureReceived = false;
+    const MOBILE_SIGNATURE_SESSION_DURATION = 10 * 60 * 1000;
+
+    function setupSignaturePad() {
+        signatureCanvas = document.getElementById('customerSignatureCanvas');
+        const signatureModal = document.getElementById('signatureModal');
+        if (!signatureCanvas || !signatureModal) return;
+
+        signatureCanvas.addEventListener('pointerdown', beginSignatureStroke);
+        signatureCanvas.addEventListener('pointermove', continueSignatureStroke);
+        signatureCanvas.addEventListener('pointerup', endSignatureStroke);
+        signatureCanvas.addEventListener('pointercancel', endSignatureStroke);
+        signatureCanvas.addEventListener('lostpointercapture', endSignatureStroke);
+        signatureModal.addEventListener('click', (event) => {
+            if (event.target === signatureModal) closeSignatureApp();
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && signatureModal.classList.contains('is-open')) closeSignatureApp();
+        });
+        updateSignaturePanel();
+    }
+
+    function openSignatureApp() {
+        const customerName = document.getElementById('custName').value.trim();
+        if (!customerName) {
+            alert('Please enter the Customer Name before capturing the signature. The PNG will use this name.');
+            document.getElementById('custName').focus();
+            return;
+        }
+
+        const modal = document.getElementById('signatureModal');
+        document.getElementById('signatureCustomerName').textContent = 'Customer: ' + customerName;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('signature-modal-open');
+
+        requestAnimationFrame(() => prepareSignatureCanvas(customerSignatureData));
+    }
+
+    function closeSignatureApp() {
+        const modal = document.getElementById('signatureModal');
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('signature-modal-open');
+        signatureDrawing = false;
+        signatureLastPoint = null;
+    }
+
+    function prepareSignatureCanvas(existingDataUrl = '') {
+        if (!signatureCanvas) return;
+        const canvasToken = ++signatureCanvasToken;
+        const bounds = signatureCanvas.getBoundingClientRect();
+        const cssWidth = Math.max(280, Math.round(bounds.width));
+        const cssHeight = Math.max(180, Math.round(bounds.height));
+        const pixelRatio = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+
+        signatureCanvas.width = Math.round(cssWidth * pixelRatio);
+        signatureCanvas.height = Math.round(cssHeight * pixelRatio);
+        signatureContext = signatureCanvas.getContext('2d', { willReadFrequently: true });
+        signatureContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+        signatureContext.clearRect(0, 0, cssWidth, cssHeight);
+        signatureContext.strokeStyle = '#111827';
+        signatureContext.fillStyle = '#111827';
+        signatureContext.lineWidth = SIGNATURE_BRUSH_SIZE;
+        signatureContext.lineCap = 'round';
+        signatureContext.lineJoin = 'round';
+        signatureHasInk = false;
+        signatureLastPoint = null;
+
+        if (existingDataUrl) {
+            const savedSignature = new Image();
+            savedSignature.onload = () => {
+                if (!signatureContext || canvasToken !== signatureCanvasToken) return;
+                const inset = 26;
+                const scale = Math.min((cssWidth - inset * 2) / savedSignature.naturalWidth, (cssHeight - inset * 2) / savedSignature.naturalHeight, 1);
+                const drawWidth = savedSignature.naturalWidth * scale;
+                const drawHeight = savedSignature.naturalHeight * scale;
+                signatureContext.drawImage(savedSignature, (cssWidth - drawWidth) / 2, (cssHeight - drawHeight) / 2, drawWidth, drawHeight);
+                signatureHasInk = true;
+                setSignaturePadStatus('Existing signature loaded. You can keep it or redraw it.');
+            };
+            savedSignature.onerror = () => {
+                if (canvasToken === signatureCanvasToken) setSignaturePadStatus('Unable to load the previous signature. Please sign again.');
+            };
+            savedSignature.src = existingDataUrl;
+        } else {
+            setSignaturePadStatus('Draw the customer’s signature, then tap Save Signature.');
+        }
+    }
+
+    function signaturePointFromEvent(event) {
+        const rect = signatureCanvas.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top
+        };
+    }
+
+    function beginSignatureStroke(event) {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        if (!signatureContext) prepareSignatureCanvas();
+        event.preventDefault();
+        signatureDrawing = true;
+        signatureHasInk = true;
+        signatureLastPoint = signaturePointFromEvent(event);
+        try { signatureCanvas.setPointerCapture(event.pointerId); } catch (_) {}
+
+        // A small dot also records a valid short tap, rather than losing it on export.
+        signatureContext.beginPath();
+        signatureContext.arc(signatureLastPoint.x, signatureLastPoint.y, SIGNATURE_BRUSH_SIZE / 2, 0, Math.PI * 2);
+        signatureContext.fill();
+        setSignaturePadStatus('Signature captured. Tap Save Signature when finished.');
+    }
+
+    function continueSignatureStroke(event) {
+        if (!signatureDrawing || !signatureContext) return;
+        event.preventDefault();
+        const point = signaturePointFromEvent(event);
+        signatureContext.beginPath();
+        signatureContext.moveTo(signatureLastPoint.x, signatureLastPoint.y);
+        signatureContext.lineTo(point.x, point.y);
+        signatureContext.stroke();
+        signatureLastPoint = point;
+    }
+
+    function endSignatureStroke(event) {
+        if (!signatureDrawing) return;
+        signatureDrawing = false;
+        signatureLastPoint = null;
+        if (signatureCanvas && event && signatureCanvas.hasPointerCapture && signatureCanvas.hasPointerCapture(event.pointerId)) {
+            try { signatureCanvas.releasePointerCapture(event.pointerId); } catch (_) {}
+        }
+    }
+
+    function clearSignaturePad() {
+        if (!signatureCanvas || !signatureContext) return;
+        // Invalidate a pending image load from a previously saved signature.
+        signatureCanvasToken++;
+        signatureContext.save();
+        signatureContext.setTransform(1, 0, 0, 1, 0, 0);
+        signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        signatureContext.restore();
+        signatureHasInk = false;
+        signatureLastPoint = null;
+        setSignaturePadStatus('Pad cleared. Please sign again.');
+    }
+
+    function exportedSignatureDataUrl() {
+        if (!signatureCanvas || !signatureContext) return '';
+        const imageData = signatureContext.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+        const { data, width, height } = imageData;
+        let left = width, right = -1, top = height, bottom = -1;
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (data[(y * width + x) * 4 + 3] > 8) {
+                    if (x < left) left = x;
+                    if (x > right) right = x;
+                    if (y < top) top = y;
+                    if (y > bottom) bottom = y;
+                }
+            }
+        }
+        if (right < left || bottom < top) return '';
+
+        const padding = Math.max(18, Math.round(Math.min(width, height) * 0.035));
+        left = Math.max(0, left - padding);
+        top = Math.max(0, top - padding);
+        right = Math.min(width - 1, right + padding);
+        bottom = Math.min(height - 1, bottom + padding);
+
+        const result = document.createElement('canvas');
+        result.width = right - left + 1;
+        result.height = bottom - top + 1;
+        const resultContext = result.getContext('2d');
+        resultContext.drawImage(signatureCanvas, left, top, result.width, result.height, 0, 0, result.width, result.height);
+        return result.toDataURL('image/png');
+    }
+
+    function saveCustomerSignature() {
+        if (!signatureHasInk) {
+            alert('Please ask the customer to sign before saving.');
+            return;
+        }
+        const dataUrl = exportedSignatureDataUrl();
+        if (!dataUrl) {
+            alert('No signature was detected. Please sign inside the box.');
+            return;
+        }
+        customerSignatureData = dataUrl;
+        updateSignaturePanel();
+        closeSignatureApp();
+        setSignatureRecordStatus('Signature ready. Save or print the record to attach it to this customer.');
+    }
+
+    function createMobileSignatureSessionCode() {
+        // A five-digit number is deliberately simple for staff/customers to type on a phone.
+        // The transaction below prevents it from replacing another live session with the same code.
+        if (window.crypto && window.crypto.getRandomValues) {
+            const random = new Uint32Array(1);
+            window.crypto.getRandomValues(random);
+            return String(10000 + (random[0] % 90000));
+        }
+        return String(10000 + Math.floor(Math.random() * 90000));
+    }
+
+    function formatMobileSignatureSessionCode(code) {
+        return String(code || '');
+    }
+
+    async function createAvailableMobileSignatureSession(customerName) {
+        const expiresAt = Date.now() + MOBILE_SIGNATURE_SESSION_DURATION;
+        for (let attempt = 0; attempt < 10; attempt++) {
+            const code = createMobileSignatureSessionCode();
+            // Reuse the authenticated customerLogs branch already permitted by this app's Firebase rules.
+            // This nested system branch is filtered out of the visible customer log table below.
+            const ref = db.ref('customerLogs/_wirelessSignatures/' + code);
+            const transaction = await ref.transaction(current => {
+                const isExpired = current && Number(current.expiresAt || 0) < Date.now();
+                if (current && !isExpired) return; // choose a different five-digit code instead of overwriting it
+                return {
+                    customerName,
+                    status: 'waiting',
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    expiresAt
+                };
+            });
+            if (transaction.committed) return { code, ref, expiresAt };
+        }
+        throw new Error('Could not reserve a pairing code. Please try again.');
+    }
+
+    function setMobilePairStatus(message, type = '') {
+        const status = document.getElementById('mobilePairStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.className = 'mobile-pair-status' + (type ? ' ' + type : '');
+    }
+
+    async function openMobileSignaturePairing() {
+        const customerName = document.getElementById('custName').value.trim();
+        if (!customerName) {
+            alert('Please enter the Customer Name before connecting a mobile phone.');
+            document.getElementById('custName').focus();
+            return;
+        }
+        if (!auth.currentUser) {
+            alert('Please sign in to the Maintenance app before connecting a mobile phone.');
+            return;
+        }
+
+        await closeMobileSignaturePairing(true, true);
+        mobileSignatureReceived = false;
+        const modal = document.getElementById('mobileSignaturePairModal');
+        modal.classList.remove('is-complete');
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('signature-modal-open');
+        document.getElementById('mobileSignatureCode').textContent = 'CONNECTING';
+        setMobilePairStatus('Creating a five-digit connection code…');
+
+        try {
+            const session = await createAvailableMobileSignatureSession(customerName);
+            mobileSignatureSessionCode = session.code;
+            mobileSignatureSessionRef = session.ref;
+            document.getElementById('mobileSignatureCode').textContent = formatMobileSignatureSessionCode(mobileSignatureSessionCode);
+            mobileSignatureSessionListener = (snapshot) => handleMobileSignatureSessionUpdate(snapshot, session.expiresAt);
+            mobileSignatureSessionRef.on('value', mobileSignatureSessionListener);
+            mobileSignatureSessionTimer = window.setTimeout(() => expireMobileSignatureSession(), MOBILE_SIGNATURE_SESSION_DURATION);
+            setMobilePairStatus('Waiting for the signature from the mobile app. This five-digit code expires in 10 minutes.');
+        } catch (error) {
+            setMobilePairStatus('Unable to create the mobile connection: ' + error.message, 'error');
+        }
+    }
+
+    function handleMobileSignatureSessionUpdate(snapshot, expiresAt) {
+        const session = snapshot.val();
+        if (!session || mobileSignatureReceived) return;
+        if (Date.now() > (session.expiresAt || expiresAt || 0)) {
+            expireMobileSignatureSession();
+            return;
+        }
+        const dataUrl = String(session.signatureData || '');
+        if (!dataUrl.startsWith('data:image/png;base64,')) return;
+
+        mobileSignatureReceived = true;
+        customerSignatureData = dataUrl;
+        updateSignaturePanel();
+        setSignatureRecordStatus('Signature received wirelessly from mobile. Save or print the record to attach it to this customer.');
+        const modal = document.getElementById('mobileSignaturePairModal');
+        modal.classList.add('is-complete');
+        setMobilePairStatus('Signature received successfully. It is now displayed in the Maintenance app and ready to download.', 'success');
+
+        // Tell the phone its upload arrived; the image stays in the active record after Save / Print.
+        mobileSignatureSessionRef.update({ status: 'received', receivedAt: firebase.database.ServerValue.TIMESTAMP }).catch(() => {});
+    }
+
+    function expireMobileSignatureSession() {
+        if (!mobileSignatureSessionRef || mobileSignatureReceived) return;
+        setMobilePairStatus('This connection code has expired. Cancel it and start a new mobile connection.', 'error');
+        if (mobileSignatureSessionTimer) {
+            window.clearTimeout(mobileSignatureSessionTimer);
+            mobileSignatureSessionTimer = null;
+        }
+        if (mobileSignatureSessionListener) mobileSignatureSessionRef.off('value', mobileSignatureSessionListener);
+        mobileSignatureSessionListener = null;
+    }
+
+    async function closeMobileSignaturePairing(removeSession = true, keepModalClosed = false) {
+        if (mobileSignatureSessionTimer) {
+            window.clearTimeout(mobileSignatureSessionTimer);
+            mobileSignatureSessionTimer = null;
+        }
+        const ref = mobileSignatureSessionRef;
+        const listener = mobileSignatureSessionListener;
+        mobileSignatureSessionRef = null;
+        mobileSignatureSessionListener = null;
+        mobileSignatureSessionCode = '';
+        mobileSignatureReceived = false;
+        if (ref && listener) ref.off('value', listener);
+        if (ref && removeSession) {
+            try { await ref.remove(); } catch (_) {}
+        }
+        if (!keepModalClosed) {
+            const modal = document.getElementById('mobileSignaturePairModal');
+            modal.classList.remove('is-open', 'is-complete');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('signature-modal-open');
+        }
+    }
+
+    async function copyMobileSignatureCode() {
+        if (!mobileSignatureSessionCode) return;
+        const code = formatMobileSignatureSessionCode(mobileSignatureSessionCode);
+        try {
+            await navigator.clipboard.writeText(code);
+            setMobilePairStatus('Connection code copied. Enter it in the Elite Signature Capture app.');
+        } catch (_) {
+            const helper = document.createElement('textarea');
+            helper.value = code;
+            helper.style.position = 'fixed';
+            helper.style.opacity = '0';
+            document.body.appendChild(helper);
+            helper.select();
+            document.execCommand('copy');
+            helper.remove();
+            setMobilePairStatus('Connection code copied. Enter it in the Elite Signature Capture app.');
+        }
+    }
+
+    function updateSignaturePanel() {
+        const preview = document.getElementById('customerSignaturePreview');
+        const empty = document.getElementById('customerSignatureEmpty');
+        const capture = document.getElementById('captureSignatureButton');
+        const download = document.getElementById('downloadSignatureButton');
+        const remove = document.getElementById('removeSignatureButton');
+        const hasSignature = Boolean(customerSignatureData);
+
+        if (!preview || !empty || !capture || !download || !remove) return;
+        preview.hidden = !hasSignature;
+        empty.hidden = hasSignature;
+        preview.src = hasSignature ? customerSignatureData : '';
+        capture.textContent = hasSignature ? '✍️ Replace Signature' : '✍️ Add Customer Signature';
+        download.disabled = !hasSignature;
+        remove.disabled = !hasSignature;
+        if (!hasSignature) setSignatureRecordStatus('No signature captured. Ask the customer to sign on the Android-friendly signature pad.');
+    }
+
+    function setSignaturePadStatus(message) {
+        const status = document.getElementById('signaturePadStatus');
+        if (status) status.textContent = message;
+    }
+
+    function setSignatureRecordStatus(message) {
+        const status = document.getElementById('signatureRecordStatus');
+        if (status) status.textContent = message;
+    }
+
+    function customerSignatureFilename() {
+        const enteredName = document.getElementById('custName').value.trim() || 'Customer Signature';
+        // Preserve the customer's entered name while avoiding characters Android/Windows cannot use in a file name.
+        const safeName = enteredName.replace(/[\\/:*?"<>|\u0000-\u001F]/g, '_').replace(/\s+/g, ' ').trim() || 'Customer Signature';
+        return safeName + '.png';
+    }
+
+    function downloadCustomerSignature() {
+        if (!customerSignatureData) return;
+        const link = document.createElement('a');
+        link.href = customerSignatureData;
+        link.download = customerSignatureFilename();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function removeCustomerSignature() {
+        if (!customerSignatureData) return;
+        if (!confirm('Remove the current customer signature? Save or print the record afterwards to update the stored record.')) return;
+        customerSignatureData = '';
+        updateSignaturePanel();
+        setSignatureRecordStatus('Signature removed. Save or print the record to update this customer.');
+    }
+
     // Firebase state listener replacing insecure sessionStorage
     auth.onAuthStateChanged((user) => {
         if (user) {
@@ -476,6 +1163,7 @@
 
     window.onload = function() {
         setupEditProtectionListeners();
+        setupSignaturePad();
     };
 
     async function handleLogin() {
@@ -532,7 +1220,8 @@
         db.ref('customerLogs').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                globalLogs = Object.values(data);
+                // Ignore the internal wireless-signature session branch; only real customer records belong in the log table.
+                globalLogs = Object.values(data).filter(log => log && typeof log === 'object' && log.imei);
                 globalLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             } else {
                 globalLogs = [];
@@ -733,6 +1422,8 @@
 
         document.getElementById('entryDate').value = record.date || '';
         document.getElementById('entryTime').value = record.time || '';
+        customerSignatureData = record.customerSignature || '';
+        updateSignaturePanel();
 
         if (lockFields) {
             setFormLockState(true);
@@ -828,6 +1519,7 @@
             symptom, contact, condition, handoverCondition,
             submittedBy, tokenNo,
             date: entryDate, time: entryTime, jobsheet, advance,
+            customerSignature: customerSignatureData || '',
             timestamp: recordTimestamp
         };
 
@@ -1178,12 +1870,16 @@
         document.getElementById('tokenNo').value = '';
         document.getElementById('handoverCondition').value = '';
         document.getElementById('submittedBy').value = '';
+        customerSignatureData = '';
+        updateSignaturePanel();
         updateDateTime(); 
         document.getElementById('searchQuery').value = '';
         document.getElementById('searchResults').innerHTML = '<span style="font-size: 12px; color: #80868b;">Select search type and enter keyword above to find past records.</span>';
     }
 </script>
 
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a407af094cf4abaa',t:'MTc5MDMxNDcxNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a55351c48a210c17',t:'MTc5Mzc5MjE2OQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a55351c48a210c17',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>ript>
+
+</body>
 </html>
